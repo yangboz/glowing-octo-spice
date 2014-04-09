@@ -6,9 +6,15 @@ package com.godpaper.as3.plugins.app42
 	// Imports
 	//
 	//--------------------------------------------------------------------------
+	import com.glowing_octo_spice.app.consts.FlexGlobals;
 	import com.godpaper.as3.plugins.IPlug;
 	import com.godpaper.as3.plugins.IPlugData;
 	import com.shephertz.app42.paas.sdk.as3.App42API;
+	
+	import org.osflash.signals.Signal;
+	
+	import playerio.Message;
+	import playerio.PlayerIOError;
 	
 	
 	/**
@@ -28,6 +34,14 @@ package com.godpaper.as3.plugins.app42
 		//
 		//--------------------------------------------------------------------------
 		private var _model:App42Model;
+		//Singals for external handlers.
+		private var _signal_room_refreshed:Signal;
+		private var _signal_hoster_joined:Signal;
+		private var _signal_user_joined:Signal;
+		private var _signal_piece_placed:Signal;
+		private var _signal_game_tie:Signal;
+		private var _signal_game_reset:Signal;
+		private var _signal_player_win:Signal;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
@@ -38,7 +52,41 @@ package com.godpaper.as3.plugins.app42
 		//
 		//--------------------------------------------------------------------------
 		
+		//IPluginSignal impl
+		public function get signal_player_win():Signal
+		{
+			return _signal_player_win;
+		}
 		
+		public function get signal_game_reset():Signal
+		{
+			return _signal_game_reset;
+		}
+		
+		public function get signal_game_tie():Signal
+		{
+			return _signal_game_tie;
+		}
+		
+		public function get signal_piece_placed():Signal
+		{
+			return _signal_piece_placed;
+		}
+		
+		public function get signal_user_joined():Signal
+		{
+			return _signal_user_joined;
+		}
+		
+		public function get signal_hoster_joined():Signal
+		{
+			return _signal_hoster_joined;
+		}
+		
+		public function get signal_room_refreshed():Signal
+		{
+			return _signal_room_refreshed;
+		}
 		//--------------------------------------------------------------------------
 		//
 		// Protected properties
@@ -56,6 +104,14 @@ package com.godpaper.as3.plugins.app42
 			_model = new App42Model();
 			_model.gameID = gameID;
 			_model.boardID = boardID;
+			//IPluginSignal implementation
+			this._signal_room_refreshed = new Signal(Array);
+			this._signal_hoster_joined = new Signal(String);
+			this._signal_user_joined = new Signal();
+			this._signal_piece_placed = new Signal(Message,int,int,String,int);
+			this._signal_game_tie = new Signal();
+			this._signal_game_reset = new Signal();
+			this._signal_player_win = new Signal(int,String);//winner index,winner name.
 		}
 		
 		public function get data():IPlugData
@@ -111,7 +167,21 @@ package com.godpaper.as3.plugins.app42
 		// Public methods
 		//
 		//--------------------------------------------------------------------------
-		
+		//Default as hoster/player1,roleIndx=0,
+		public function createRoom(... args):void
+		{
+			//TODO: implement function
+		}
+		//
+		public function refreshRoomList(... args):void
+		{
+			//TODO: implement function
+		}
+		//roomID,peerID,roleIndex
+		public function joinRoom(... args):void
+		{
+			//TODO: implement function
+		}
 		//--------------------------------------------------------------------------
 		//
 		// Protected methods

@@ -1,6 +1,6 @@
 package com.godpaper.as3.plugins
 {
-	import flash.display.Stage;
+//	import flash.display.Stage;
 	
 //	import mx.core.UIComponent;
 
@@ -19,7 +19,7 @@ package com.godpaper.as3.plugins
 	 * @playerVersion 9.0
 	 * Created Apr 20, 2011 6:12:56 PM
 	 */
-	public interface IPlug extends IPluginSignal
+	public interface IPlug extends IPluginRoom
 	{
 		//--------------------------------------------------------------------------
 		//

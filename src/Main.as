@@ -4,6 +4,7 @@ package
 	import com.glowing_octo_spice.app.consts.FlexGlobals;
 	import com.glowing_octo_spice.app.models.SET.SETsModel;
 	import com.glowing_octo_spice.app.views.MainView;
+	import com.godpaper.as3.plugins.app42.App42Plugin;
 	import com.godpaper.as3.plugins.playerIO.PlayerIoPlugin;
 	import com.godpaper.as3.utils.LogUtil;
 	import com.godpaper.as3.utils.SingletonFactory;
@@ -92,7 +93,8 @@ package
 			_starling.start();
 			//FlexGlobals configurations here.
 			FlexGlobals.flashStage=stage;
-			FlexGlobals.pluginProvider = SingletonFactory.produce(PlayerIoPlugin);
+//			FlexGlobals.pluginProvider = SingletonFactory.produce(PlayerIoPlugin);
+			FlexGlobals.pluginProvider = SingletonFactory.produce(App42Plugin);
 			// loader info.
 			this.loaderInfo.addEventListener(flash.events.Event.COMPLETE, loaderInfoCompleteHandler);
 		}

@@ -18,7 +18,7 @@ package com.godpaper.as3.plugins
 	 * Created Apr 9, 2014 3:19:23 PM
 	 * @history 12/30/13,
 	 */
-	public interface IPluginSignal
+	public interface IPluginRoom
 	{
 		//--------------------------------------------------------------------------
 		//

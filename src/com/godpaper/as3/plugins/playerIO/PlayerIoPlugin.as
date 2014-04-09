@@ -31,7 +31,7 @@ package com.godpaper.as3.plugins.playerIO
 	import com.godpaper.as3.configs.IndicatorConfig;
 	import com.godpaper.as3.plugins.IPlug;
 	import com.godpaper.as3.plugins.IPlugData;
-	import com.godpaper.as3.plugins.IPluginSignal;
+	import com.godpaper.as3.plugins.IPluginRoom;
 	import com.godpaper.as3.utils.LogUtil;
 	
 	import flash.geom.Point;
@@ -86,7 +86,7 @@ package com.godpaper.as3.plugins.playerIO
 		//  Public properties
 		//
 		//-------------------------------------------------------------------------- 
-		//IGameSignal impl
+		//IPluginSignal impl
 		public function get signal_player_win():Signal
 		{
 			return _signal_player_win;
@@ -137,7 +137,7 @@ package com.godpaper.as3.plugins.playerIO
 			_model = new PlayerIoModel();
 			_model.gameID = gameID;
 			_model.boardID = boardID;
-			//
+			//IPluginSignal implementation
 			this._signal_room_refreshed = new Signal(Array);
 			this._signal_hoster_joined = new Signal(String);
 			this._signal_user_joined = new Signal();
