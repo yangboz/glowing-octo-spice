@@ -31,6 +31,7 @@ package com.godpaper.as3.plugins.playerIO
 	import com.godpaper.as3.configs.IndicatorConfig;
 	import com.godpaper.as3.plugins.IPlug;
 	import com.godpaper.as3.plugins.IPlugData;
+	import com.godpaper.as3.plugins.IPluginSignal;
 	import com.godpaper.as3.utils.LogUtil;
 	
 	import flash.geom.Point;
@@ -66,13 +67,13 @@ package com.godpaper.as3.plugins.playerIO
 		//
 		private var _client:Client;
 		//Singals for external handlers.
-		public var signal_room_refreshed:Signal;
-		public var signal_hoster_joined:Signal;
-		public var signal_user_joined:Signal;
-		public var signal_piece_placed:Signal;
-		public var signal_game_tie:Signal;
-		public var signal_game_reset:Signal;
-		public var signal_player_win:Signal;
+		private var _signal_room_refreshed:Signal;
+		private var _signal_hoster_joined:Signal;
+		private var _signal_user_joined:Signal;
+		private var _signal_piece_placed:Signal;
+		private var _signal_game_tie:Signal;
+		private var _signal_game_reset:Signal;
+		private var _signal_player_win:Signal;
 		//
 		public var roomID:String;
 		public var connection:Connection;
@@ -85,7 +86,41 @@ package com.godpaper.as3.plugins.playerIO
 		//  Public properties
 		//
 		//-------------------------------------------------------------------------- 
-		
+		//IGameSignal impl
+		public function get signal_player_win():Signal
+		{
+			return _signal_player_win;
+		}
+
+		public function get signal_game_reset():Signal
+		{
+			return _signal_game_reset;
+		}
+
+		public function get signal_game_tie():Signal
+		{
+			return _signal_game_tie;
+		}
+
+		public function get signal_piece_placed():Signal
+		{
+			return _signal_piece_placed;
+		}
+
+		public function get signal_user_joined():Signal
+		{
+			return _signal_user_joined;
+		}
+
+		public function get signal_hoster_joined():Signal
+		{
+			return _signal_hoster_joined;
+		}
+
+		public function get signal_room_refreshed():Signal
+		{
+			return _signal_room_refreshed;
+		}
 		//--------------------------------------------------------------------------
 		//
 		//  Protected properties
@@ -103,13 +138,13 @@ package com.godpaper.as3.plugins.playerIO
 			_model.gameID = gameID;
 			_model.boardID = boardID;
 			//
-			this.signal_room_refreshed = new Signal(Array);
-			this.signal_hoster_joined = new Signal(String);
-			this.signal_user_joined = new Signal();
-			this.signal_piece_placed = new Signal(Message,int,int,String,int);
-			this.signal_game_tie = new Signal();
-			this.signal_game_reset = new Signal();
-			this.signal_player_win = new Signal(int,String);//winner index,winner name.
+			this._signal_room_refreshed = new Signal(Array);
+			this._signal_hoster_joined = new Signal(String);
+			this._signal_user_joined = new Signal();
+			this._signal_piece_placed = new Signal(Message,int,int,String,int);
+			this._signal_game_tie = new Signal();
+			this._signal_game_reset = new Signal();
+			this._signal_player_win = new Signal(int,String);//winner index,winner name.
 		}
 		
 		public function get data():IPlugData
@@ -195,8 +230,11 @@ package com.godpaper.as3.plugins.playerIO
 		//
 		//--------------------------------------------------------------------------
 		//Default as hoster/player1,roleIndx=0,
-		public function createRoom(name:String,peerID:String,roleIndex:int=0):void
+		public function createRoom(... args):void
 		{
+			var name:String = args[0];
+			var peerID:String = args[1];
+			var roleIndex:int = args[2];
 			this._client.multiplayer.createRoom(
 				null,								//Room id, null for auto generted
 				this._model.boardID,							//RoomType to create, bounce is a simple bounce server
@@ -219,7 +257,7 @@ package com.godpaper.as3.plugins.playerIO
 			);
 		}
 		//
-		public function refreshRoomList():void
+		public function refreshRoomList(... args):void
 		{
 			this._client.multiplayer.listRooms(this._model.boardID, {}, 50, 0, function(rooms:Array):void{
 				//Trace out returned rooms
@@ -234,8 +272,11 @@ package com.godpaper.as3.plugins.playerIO
 			})
 		}
 		//roomID,peerID,roleIndex
-		public function joinRoom(id:String,peerID:String="",roleIndex:int=0):void
+		public function joinRoom(... args):void
 		{
+			var id:String = args[0];
+			var peerID:String = args[1];
+			var roleIndex:int = args[2];
 			this._client.multiplayer.joinRoom(
 				id,									//Room id
 				{},									//User join data.

@@ -21,11 +21,10 @@
  */
 package com.godpaper.as3.plugins.playerIO
 {
-	import com.godpaper.as3.core.FlexGlobals;
-	import com.godpaper.as3.plugins.IPlug;
+	import com.glowing_octo_spice.app.consts.FlexGlobals;
+	import com.godpaper.as3.services.IConductService;
 	
 	import playerio.Message;
-	import com.godpaper.as3.services.IConductService;
 
 	//--------------------------------------------------------------------------
 	//
@@ -62,7 +61,7 @@ package com.godpaper.as3.plugins.playerIO
 		public function get playerIoPlugin():PlayerIoPlugin
 		{
 			//Refresh game room with tables.
-			var playerIoPlugin:PlayerIoPlugin = (FlexGlobals.topLevelApplication.pluginProvider as PlayerIoPlugin);
+			var playerIoPlugin:PlayerIoPlugin = (FlexGlobals.pluginProvider as PlayerIoPlugin);
 			return playerIoPlugin;
 		}
 		//

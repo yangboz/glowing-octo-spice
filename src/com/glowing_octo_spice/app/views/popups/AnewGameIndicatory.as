@@ -1,6 +1,7 @@
 package com.glowing_octo_spice.app.views.popups
 {
 	import com.glowing_octo_spice.app.consts.FlexGlobals;
+	import com.godpaper.as3.plugins.playerIO.PlayerIoPlugin;
 	
 	import mx.utils.UIDUtil;
 	
@@ -151,9 +152,9 @@ package com.glowing_octo_spice.app.views.popups
 				return;
 			}
 			//Set up a new game room here.
-			if( FlexGlobals.playerIoPlugin )
+			if( FlexGlobals.pluginProvider )
 			{
-				FlexGlobals.playerIoPlugin.createRoom(this._nameInput.text,FlexGlobals.userModel.hosterPeerId,FlexGlobals.userModel.hosterRoleIndex);
+				FlexGlobals.pluginProvider.createRoom(this._nameInput.text,FlexGlobals.userModel.hosterPeerId,FlexGlobals.userModel.hosterRoleIndex);
 			}
 			//Remove the pop-up.
 			PopUpManager.removePopUp(this);

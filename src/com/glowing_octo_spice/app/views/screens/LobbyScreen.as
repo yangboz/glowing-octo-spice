@@ -279,10 +279,10 @@ package com.glowing_octo_spice.app.views.screens
 			PopUpManager.addPopUp(anewGameIndicatory,true,true);
 			PopUpManager.centerPopUp(anewGameIndicatory);
 			//Signal handler.
-			if( FlexGlobals.playerIoPlugin )
+			if( FlexGlobals.pluginProvider )
 			{
 				//Signal addOnce
-				FlexGlobals.playerIoPlugin.signal_user_joined.addOnce(onUserJoined);
+				FlexGlobals.pluginProvider.signal_user_joined.addOnce(onUserJoined);
 			}
 		}
 		private function backButton_onRelease(event:Event):void
@@ -293,11 +293,11 @@ package com.glowing_octo_spice.app.views.screens
 		//
 		private function refreshButton_onRelease(event:Event):void
 		{
-			if( FlexGlobals.playerIoPlugin )
+			if( FlexGlobals.pluginProvider )
 			{
-				FlexGlobals.playerIoPlugin.refreshRoomList();
+				FlexGlobals.pluginProvider.refreshRoomList();
 				//Signal addOnce
-				FlexGlobals.playerIoPlugin.signal_room_refreshed.addOnce(onRoomsRefreshed);
+				FlexGlobals.pluginProvider.signal_room_refreshed.addOnce(onRoomsRefreshed);
 			}
 		}
 		//
@@ -322,12 +322,12 @@ package com.glowing_octo_spice.app.views.screens
 			{
 				FlexGlobals.userModel.hosterRoleIndex = 2;//Spectator
 			}
-			if( FlexGlobals.playerIoPlugin )
+			if( FlexGlobals.pluginProvider )
 			{
 				//join selected game
-				FlexGlobals.playerIoPlugin.joinRoom(roomID,FlexGlobals.userModel.hosterPeerId,FlexGlobals.userModel.hosterRoleIndex);
+				FlexGlobals.pluginProvider.joinRoom(roomID,FlexGlobals.userModel.hosterPeerId,FlexGlobals.userModel.hosterRoleIndex);
 				//Signal handler.
-				FlexGlobals.playerIoPlugin.signal_user_joined.addOnce(onUserJoined);
+				FlexGlobals.pluginProvider.signal_user_joined.addOnce(onUserJoined);
 				//Joinning indicator pop up 
 				this.joinIndicator = new ThinkIndicatory("Joining...");
 				PopUpManager.addPopUp(joinIndicator);
@@ -343,10 +343,10 @@ package com.glowing_octo_spice.app.views.screens
 			PopUpManager.addPopUp(this.connectingIndicatory);
 			PopUpManager.centerPopUp(this.connectingIndicatory);
 			//Signal addOnce
-			if( FlexGlobals.playerIoPlugin )
+			if( FlexGlobals.pluginProvider )
 			{
 				//Signal addOnce
-				FlexGlobals.playerIoPlugin.signal_hoster_joined.addOnce(onHosterJoined);
+				FlexGlobals.pluginProvider.signal_hoster_joined.addOnce(onHosterJoined);
 			}
 		}
 		//
@@ -381,11 +381,11 @@ package com.glowing_octo_spice.app.views.screens
 			//Remove pop-up connnecting overlay
 			PopUpManager.removePopUp(this.connectingIndicatory);
 			//Auto refresh the table list at lobby.
-			if( FlexGlobals.playerIoPlugin )
+			if( FlexGlobals.pluginProvider )
 			{
-				FlexGlobals.playerIoPlugin.refreshRoomList();
+				FlexGlobals.pluginProvider.refreshRoomList();
 				//Signal addOnce
-				FlexGlobals.playerIoPlugin.signal_room_refreshed.addOnce(onRoomsRefreshed);
+				FlexGlobals.pluginProvider.signal_room_refreshed.addOnce(onRoomsRefreshed);
 			}
 		}
 		//
@@ -401,7 +401,7 @@ package com.glowing_octo_spice.app.views.screens
 				PopUpManager.removePopUp(this.joinIndicator);
 			}
 			//Refresh the room list.
-			if( FlexGlobals.playerIoPlugin )
+			if( FlexGlobals.pluginProvider )
 			{
 //				playerIoPlugin.refreshRoomList();
 //				//Signal addOnce
@@ -417,9 +417,9 @@ package com.glowing_octo_spice.app.views.screens
 			PopUpManager.addPopUp(creatingIndicatory,true,true);
 //			PopUpManager.centerPopUp(creatingIndicatory);
 			//Signal listen on playerIO plugin
-			if( FlexGlobals.playerIoPlugin )
+			if( FlexGlobals.pluginProvider )
 			{
-				FlexGlobals.playerIoPlugin.signal_user_joined.addOnce(onUserJoined);
+				FlexGlobals.pluginProvider.signal_user_joined.addOnce(onUserJoined);
 			}
 		}
 		//

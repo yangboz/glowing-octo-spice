@@ -1,67 +1,37 @@
 
-package com.glowing_octo_spice.app.consts
+package com.godpaper.as3.plugins.app42
 {
-	import com.glowing_octo_spice.app.models.UserModel;
-	import com.godpaper.as3.plugins.IPlug;
-	import com.godpaper.as3.plugins.playerIO.PlayerIoPlugin;
-	import com.godpaper.as3.utils.SingletonFactory;
-	
-	import flash.display.Stage;
-	
-	import feathers.controls.ScreenNavigator;
-	
-	import starling.textures.TextureAtlas;
-
 	//--------------------------------------------------------------------------
 	//
 	// Imports
 	//
 	//--------------------------------------------------------------------------
+	import com.godpaper.as3.services.IConductService;
+	import com.shephertz.app42.paas.sdk.as3.App42API;
+	import com.shephertz.app42.paas.sdk.as3.abtest.ABTestService;
+	
 	
 	/**
-	 * FlexGlobals.as class. 
+	 * App42Service.as class. 
 	 * @author yangboz
 	 * @langVersion 3.0
 	 * @playerVersion 11.2+
 	 * @airVersion 3.2+
-	 * Created Mar 9, 2013 5:43:21 PM
-	 * @history 05/00/12,
+	 * Created Apr 9, 2014 2:36:43 PM
+	 * @history 12/30/13,
 	 */ 
-	public class FlexGlobals
+	public class App42Service implements IConductService
 	{ 
 		//--------------------------------------------------------------------------
 		//
 		// Variables
 		//
 		//--------------------------------------------------------------------------
-		public static var screenNavigator:ScreenNavigator;
-		public static var flashStage:Stage;
-		//Model
-		public static var userModel:UserModel = SingletonFactory.produce(UserModel);
-		//Plugin
-//		public static var playerIoPlugin:PlayerIoPlugin = SingletonFactory.produce(PlayerIoPlugin);
-		public static var pluginProvider:IPlug;
-		//Game turn flag init.(0,1,2...)
-		public static var turnFlag:int;
-		//Store the user pre-selected category value comes from Traffic Signs Screen.
-		public static var selectedTSgroup:String;
-		//Texture
-		public static var iconAtlas:TextureAtlas;
+		private var abTestService:ABTestService;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
-		public static const SCREEN_SPLASH:String = "screen_splash";
-		public static const SCREEN_MAIN_MENU:String = "screen_main_menu";
-		public static const SCREEN_GAME:String = "screen_game";
-		public static const SCREEN_HANDSHAKE:String = "screen_handshake";
-		public static const SCREEN_SETTINGS:String = "screen_settings";
-		public static const SCREEN_HELP:String = "screen_help";
-		public static const SCREEN_LOOBY:String = "screen_looby";
-		public static const SCREEN_ABOUT:String = "screen_about";
-		//about chess pieces' flag
-		public static const FLAG_RED:uint=0;//0(000)
-		public static const FLAG_BLUE:uint=1<<0;//1(010)
-		public static const FLAG_GREEN:uint=1<<1;//2(100)
+		
 		//--------------------------------------------------------------------------
 		//
 		// Public properties
@@ -81,7 +51,30 @@ package com.glowing_octo_spice.app.consts
 		// Constructor
 		//
 		//--------------------------------------------------------------------------
+		public function App42Service()
+		{
+			//TODO: implement function
+		}
 		
+		public function get connected():Boolean
+		{
+			return App42API.loggedInUser!="";
+			return false;
+		}
+		/**
+		 * After initialziation,developer needs to call the buildXXXService method on ServiceAPI instance to get the instance of the particular API that you wish to build. 
+		 * @param arg
+		 */		
+		public function initialization(...arg):void
+		{
+			this.abTestService = App42API.buildABTestService();
+		}
+		
+		public function transforBrevity(type:String, value:String):String
+		{
+			//TODO: implement function
+			return null;
+		} 
 		//--------------------------------------------------------------------------
 		//
 		// Public methods

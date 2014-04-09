@@ -146,7 +146,7 @@ package com.glowing_octo_spice.app.views.popups
 			FlexGlobals.userModel.hostRoleName = this._nameInput.text;
 			FlexGlobals.userModel.registerRole(peerID,1,FlexGlobals.userModel.ROLE_NAME_LIST[1]);
 			//Enter up to game server by plugin initialization.
-			FlexGlobals.playerIoPlugin.initialization();
+			FlexGlobals.pluginProvider.initialization();
 		}
 		//
 		private function cancelButtonOnRelease(event:Event):void
