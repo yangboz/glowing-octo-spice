@@ -1,6 +1,6 @@
 package com.godpaper.as3.configs
 {
-	import com.derp_octo_lana.app.views.popups.ThinkIndicatory;
+	import com.glowing_octo_spice.app.views.popups.ThinkIndicatory;
 	
 	import feathers.controls.popups.CalloutPopUpContentManager;
 	import feathers.core.PopUpManager;

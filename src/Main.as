@@ -1,13 +1,9 @@
 
 package
 {
-	import com.derp_octo_lana.app.consts.FlexGlobals;
-	//--------------------------------------------------------------------------
-	//
-	// Imports
-	//
-	//--------------------------------------------------------------------------
-	import com.derp_octo_lana.app.views.MainView;
+	import com.glowing_octo_spice.app.consts.FlexGlobals;
+	import com.glowing_octo_spice.app.models.SET.SETsModel;
+	import com.glowing_octo_spice.app.views.MainView;
 	import com.godpaper.as3.utils.LogUtil;
 	
 	import flash.display.Sprite;
@@ -19,6 +15,8 @@ package
 	import org.robotlegs.mvcs.StarlingContext;
 	
 	import starling.core.Starling;
+	import starling.textures.Texture;
+	import starling.textures.TextureAtlas;
 	
 	
 	/**
@@ -90,6 +88,7 @@ package
 		{
 			_starling = new Starling(MainView, stage);
 			_starling.start();
+			//
 			FlexGlobals.flashStage=stage;
 			// loader info.
 			this.loaderInfo.addEventListener(flash.events.Event.COMPLETE, loaderInfoCompleteHandler);
