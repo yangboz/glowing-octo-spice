@@ -9,6 +9,9 @@ package com.godpaper.as3.plugins.app42
 	import com.godpaper.as3.services.IConductService;
 	import com.shephertz.app42.paas.sdk.as3.App42API;
 	import com.shephertz.app42.paas.sdk.as3.abtest.ABTestService;
+	import com.shephertz.app42.paas.sdk.as3.game.GameService;
+	import com.shephertz.appwarp.WarpClient;
+	import com.shephertz.appwarp.types.ConnectionState;
 	
 	
 	/**
@@ -27,7 +30,8 @@ package com.godpaper.as3.plugins.app42
 		// Variables
 		//
 		//--------------------------------------------------------------------------
-		private var abTestService:ABTestService;
+		public var abTestService:ABTestService;
+		public var gameService:GameService;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
@@ -58,8 +62,9 @@ package com.godpaper.as3.plugins.app42
 		
 		public function get connected():Boolean
 		{
-			return App42API.loggedInUser!="";
-			return false;
+//			return App42API.loggedInUser!="";
+//			return false;
+			return (WarpClient.getInstance().getConnectionState()==ConnectionState.connected);
 		}
 		/**
 		 * After initialziation,developer needs to call the buildXXXService method on ServiceAPI instance to get the instance of the particular API that you wish to build. 
@@ -68,6 +73,7 @@ package com.godpaper.as3.plugins.app42
 		public function initialization(...arg):void
 		{
 			this.abTestService = App42API.buildABTestService();
+			this.gameService = App42API.buildGameService();
 		}
 		
 		public function transforBrevity(type:String, value:String):String

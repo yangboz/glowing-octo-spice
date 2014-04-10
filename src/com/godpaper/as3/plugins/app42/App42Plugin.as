@@ -10,6 +10,8 @@ package com.godpaper.as3.plugins.app42
 	import com.godpaper.as3.plugins.IPlug;
 	import com.godpaper.as3.plugins.IPlugData;
 	import com.shephertz.app42.paas.sdk.as3.App42API;
+	import com.shephertz.appwarp.WarpClient;
+	import com.shephertz.appwarp.types.ConnectionState;
 	
 	import org.osflash.signals.Signal;
 	
@@ -42,10 +44,15 @@ package com.godpaper.as3.plugins.app42
 		private var _signal_game_tie:Signal;
 		private var _signal_game_reset:Signal;
 		private var _signal_player_win:Signal;
+		//App42 WrapClient
+		private var _app42_wrap_client:WarpClient;
+		private var _app42_wrap_client_listener:App42WrapClientListener = new App42WrapClientListener();
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
-		
+		private static const APP42_API_KEY:String = "a8181333cff6c70e3b3f21976e10911a3bfabc3ac95893d71733179493a57c9f";
+		private static const APP42_SECRET_KEY:String = "cff1629d3dbc96ee83eb8a0a3efbbc6004c8034381bdd08afe380ed516280e3e";
+		private static const APP42_ROOM_ID:String = "";
 		//--------------------------------------------------------------------------
 		//
 		// Public properties
@@ -116,8 +123,7 @@ package com.godpaper.as3.plugins.app42
 		
 		public function get data():IPlugData
 		{
-			//TODO: implement function
-			return null;
+			return _model;
 		}
 		/**
 		 * App42API initialziation here.
@@ -125,7 +131,22 @@ package com.godpaper.as3.plugins.app42
 		 */		
 		public function initialization():void
 		{
-			App42API.initialize("a8181333cff6c70e3b3f21976e10911a3bfabc3ac95893d71733179493a57c9f","cff1629d3dbc96ee83eb8a0a3efbbc6004c8034381bdd08afe380ed516280e3e");	
+			//User peerID initialization
+			var peerID:String = FlexGlobals.userModel.hosterPeerId;//Default get hoster peerID.
+			var username:String = FlexGlobals.userModel.hostRoleName;
+			//
+//			App42API.initialize(APP42_API_KEY,APP42_SECRET_KEY);	
+			WarpClient.initialize(APP42_API_KEY,APP42_SECRET_KEY);
+			//
+			this._app42_wrap_client = WarpClient.getInstance();
+			this._app42_wrap_client.setConnectionRequestListener(this._app42_wrap_client_listener);
+			this._app42_wrap_client.setRoomRequestListener(this._app42_wrap_client_listener);
+			this._app42_wrap_client.setNotificationListener(this._app42_wrap_client_listener);
+			//Try to connect.
+			if(this._app42_wrap_client.getConnectionState()==ConnectionState.disconnected)
+			{
+				this._app42_wrap_client.connect(username);
+			}
 		}
 		
 		public function showData():Boolean
@@ -194,5 +215,5 @@ package com.godpaper.as3.plugins.app42
 		//
 		//--------------------------------------------------------------------------
 	}
-	
+
 }

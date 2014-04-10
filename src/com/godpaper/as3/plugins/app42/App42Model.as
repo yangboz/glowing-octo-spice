@@ -10,7 +10,7 @@ package com.godpaper.as3.plugins.app42
 	
 	
 	/**
-	 * App42Model.as class. 
+	 * App42Model.as class. A model collected variables for App42 plugin.
 	 * @author yangboz
 	 * @langVersion 3.0
 	 * @playerVersion 11.2+
