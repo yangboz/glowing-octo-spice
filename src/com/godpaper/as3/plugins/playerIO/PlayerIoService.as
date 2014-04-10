@@ -21,7 +21,7 @@
  */
 package com.godpaper.as3.plugins.playerIO
 {
-	import com.glowing_octo_spice.app.consts.FlexGlobals;
+	import com.com.derp_octo_lana.app.consts.FlexGlobals;
 	import com.godpaper.as3.services.IConductService;
 	
 	import playerio.Message;

@@ -6,15 +6,18 @@ package com.godpaper.as3.plugins.app42
 	// Imports
 	//
 	//--------------------------------------------------------------------------
-	import com.glowing_octo_spice.app.consts.FlexGlobals;
+	import com.com.derp_octo_lana.app.consts.FlexGlobals;
 	import com.godpaper.as3.utils.LogUtil;
-	import com.shephertz.appwarp.WarpClient;
 	import com.shephertz.appwarp.listener.ConnectionRequestListener;
 	import com.shephertz.appwarp.listener.NotificationListener;
 	import com.shephertz.appwarp.listener.RoomRequestListener;
+	import com.shephertz.appwarp.listener.ZoneRequestListener;
 	import com.shephertz.appwarp.messages.Chat;
+	import com.shephertz.appwarp.messages.LiveResult;
 	import com.shephertz.appwarp.messages.LiveRoom;
+	import com.shephertz.appwarp.messages.LiveUser;
 	import com.shephertz.appwarp.messages.Lobby;
+	import com.shephertz.appwarp.messages.MatchedRooms;
 	import com.shephertz.appwarp.messages.Move;
 	import com.shephertz.appwarp.messages.Room;
 	import com.shephertz.appwarp.types.ResultCode;
@@ -33,7 +36,7 @@ package com.godpaper.as3.plugins.app42
 	 * Created Apr 10, 2014 11:13:13 AM
 	 * @history 12/30/13,
 	 */ 
-	public class App42WrapClientListener implements ConnectionRequestListener, RoomRequestListener, NotificationListener
+	public class App42WrapClientListener implements ConnectionRequestListener, RoomRequestListener, NotificationListener, ZoneRequestListener
 	{ 
 		//--------------------------------------------------------------------------
 		//
@@ -114,11 +117,14 @@ package com.godpaper.as3.plugins.app42
 		public function onJoinRoomDone(event:Room):void
 		{
 			if(event.result == ResultCode.success){
-				LOG.info("Started! Use up/down arrows and click to shoot.");
+				LOG.info("onJoinRoomDone!");
+				//Broad cast signal
+				this._app42Plugin.signal_user_joined.dispatch();
 			}
 			else{
 				LOG.info("Room join failed. Verify your room id.");
 			}
+			//
 		}
 		
 		public function onLeaveRoomDone(event:Room):void
@@ -153,7 +159,7 @@ package com.godpaper.as3.plugins.app42
 		
 		public function onRoomCreated(event:Room):void
 		{
-			//TODO: implement function
+			LOG.info("Room created successful. Verify your room id:{0}",event.roomId);
 		}
 		
 		public function onRoomDestroyed(event:Room):void
@@ -235,6 +241,65 @@ package com.godpaper.as3.plugins.app42
 		{
 			//TODO: implement function
 		} 
+		//ZoneRequestListener
+		/** 
+		 * Invoked in response to a deleteRoom request. 
+		 * @param event 
+		 */  
+		public function onDeleteRoomDone(event:Room):void
+		{
+			trace(event);
+		}  
+		/** 
+		 * Invoked in response to a getAllRooms request. 
+		 * @param event 
+		 */  
+		public function onGetAllRoomsDone(event:LiveResult):void
+		{
+			trace(event);
+		}  
+		/** 
+		 * Invoked in response to a createRoom request. 
+		 * @param event 
+		 */  
+		public function onCreateRoomDone(event:Room):void
+		{
+			LOG.info("Room created successful. Verify your room id:{0}",event.roomId);
+			//Auto join room.
+			this._app42Plugin.joinRoom(event.roomId);
+		}  
+		/** 
+		 * Invoked in response to a getOnlineUsers request. 
+		 * @param event 
+		 */  
+		public function onGetOnlineUsersDone(event:LiveResult):void
+		{
+			trace(event);
+		}  
+		/** 
+		 * Invoked in response to a getLiveUserInfo request. 
+		 * @param event 
+		 */  
+		public function onGetLiveUserInfoDone(event:LiveUser):void
+		{
+			trace(event);
+		}  
+		/** 
+		 * Invoked in response to a setCustomRoomData request. 
+		 * @param event 
+		 */  
+		public function onSetCustomUserInfoDone(event:LiveUser):void
+		{
+			trace(event);
+		}  
+		/** 
+		 * Invoked in response to a getMatchMaking Rooms request. 
+		 * @param event 
+		 */  
+		public function onGetMatchedRoomsDone(event:MatchedRooms):void
+		{
+			trace(event);
+		}  
 		//--------------------------------------------------------------------------
 		//
 		// Public methods

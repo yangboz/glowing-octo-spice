@@ -6,7 +6,7 @@ package com.godpaper.as3.plugins.app42
 	// Imports
 	//
 	//--------------------------------------------------------------------------
-	import com.glowing_octo_spice.app.consts.FlexGlobals;
+	import com.com.derp_octo_lana.app.consts.FlexGlobals;
 	import com.godpaper.as3.plugins.IPlug;
 	import com.godpaper.as3.plugins.IPlugData;
 	import com.shephertz.app42.paas.sdk.as3.App42API;
@@ -47,6 +47,8 @@ package com.godpaper.as3.plugins.app42
 		//App42 WrapClient
 		private var _app42_wrap_client:WarpClient;
 		private var _app42_wrap_client_listener:App42WrapClientListener = new App42WrapClientListener();
+		//Reference to keep
+		private var roomID:String;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
@@ -142,6 +144,7 @@ package com.godpaper.as3.plugins.app42
 			this._app42_wrap_client.setConnectionRequestListener(this._app42_wrap_client_listener);
 			this._app42_wrap_client.setRoomRequestListener(this._app42_wrap_client_listener);
 			this._app42_wrap_client.setNotificationListener(this._app42_wrap_client_listener);
+			this._app42_wrap_client.setZoneRequestListener(this._app42_wrap_client_listener);
 			//Try to connect.
 			if(this._app42_wrap_client.getConnectionState()==ConnectionState.disconnected)
 			{
@@ -191,7 +194,11 @@ package com.godpaper.as3.plugins.app42
 		//Default as hoster/player1,roleIndx=0,
 		public function createRoom(... args):void
 		{
-			//TODO: implement function
+			var roomName:String = args[0];
+			var owner:String = args[1];
+			var maxusers:int = 10;
+			var properties:Object = {};
+			this._app42_wrap_client.createRoom(roomName,"DirectX9Ex",maxusers,properties);
 		}
 		//
 		public function refreshRoomList(... args):void
@@ -201,7 +208,17 @@ package com.godpaper.as3.plugins.app42
 		//roomID,peerID,roleIndex
 		public function joinRoom(... args):void
 		{
-			//TODO: implement function
+			var id:String = args[0];
+			var peerID:String = args[1];
+			var roleIndex:int = args[2];
+			//Keep room id reference.
+			this.roomID = id;
+			//Register role name,//Default as hoster/player1
+			FlexGlobals.userModel.hosterPeerId = peerID;//Default role is hoster.
+			FlexGlobals.userModel.hosterRoleIndex = roleIndex;
+			FlexGlobals.userModel.registerRole(peerID,roleIndex,FlexGlobals.userModel.ROLE_NAME_LIST[roleIndex]);
+			//
+			this._app42_wrap_client.joinRoom(id);
 		}
 		//--------------------------------------------------------------------------
 		//

@@ -26,12 +26,11 @@ package com.godpaper.as3.plugins.playerIO
 	//  Imports
 	//
 	//--------------------------------------------------------------------------
-	import com.glowing_octo_spice.app.consts.FlexGlobals;
-	import com.glowing_octo_spice.app.models.vos.ConductVO;
+	import com.com.derp_octo_lana.app.consts.FlexGlobals;
+	import com.com.derp_octo_lana.app.models.vos.ConductVO;
 	import com.godpaper.as3.configs.IndicatorConfig;
 	import com.godpaper.as3.plugins.IPlug;
 	import com.godpaper.as3.plugins.IPlugData;
-	import com.godpaper.as3.plugins.IPluginRoom;
 	import com.godpaper.as3.utils.LogUtil;
 	
 	import flash.geom.Point;
