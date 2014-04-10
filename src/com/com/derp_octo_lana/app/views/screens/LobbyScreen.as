@@ -176,27 +176,31 @@ package com.com.derp_octo_lana.app.views.screens
 			this._pageIndicator.addEventListener(Event.CHANGE, pageIndicator_changeHandler);
 			this.addChild(this._pageIndicator);
 			//Header view.
-			//
+			//ANEW GAME
 			this._button_create = new Button();
-						this._button_create.label = "ANEW GAME";//TODO:localization here.
+//			this._button_create.label = "+";//TODO:localization here.
+			this._button_create.defaultIcon = new Image(FlexGlobals.iconAtlas.getTexture("ANEW"));
 //			this._button_done.label = this.resourceManager.getString(this.bundleName,"BTN_DONE");
 			//			this._button_done.onRelease.add(doneButton_onRelease);
 			this._button_create.addEventListener(starling.events.Event.TRIGGERED,createButton_onRelease);
-			//
+			//BACK
 			this._button_back = new Button();
 			//			this._button_back.label = "BACK";
-			this._button_back.label = "BACK";
+//			this._button_back.label = "<-";
+			this._button_back.defaultIcon = new Image(FlexGlobals.iconAtlas.getTexture("BACK"));
 			//			this._button_back.onRelease.add(backButton_onRelease);
 			this._button_back.addEventListener(starling.events.Event.TRIGGERED,backButton_onRelease);
-			//
+			//REFRESH
 			this._button_refresh = new Button();
-			this._button_refresh.label = "REFRESH";
+//			this._button_refresh.label = "F";
+			this._button_refresh.defaultIcon = new Image(FlexGlobals.iconAtlas.getTexture("REFRESH"));
 //			this._button_refresh.label = this.resourceManager.getString(this.bundleName,"BTN_BACK");
 			//			this._button_back.onRelease.add(backButton_onRelease);
 			this._button_refresh.addEventListener(starling.events.Event.TRIGGERED,refreshButton_onRelease);
-			//
+			//JOIN
 			this._button_join = new Button();
-			this._button_join.label = "JOIN";
+//			this._button_join.label = "+";
+			this._button_join.defaultIcon = new Image(FlexGlobals.iconAtlas.getTexture("JOIN"));
 			//			this._button_refresh.label = this.resourceManager.getString(this.bundleName,"BTN_BACK");
 			//			this._button_back.onRelease.add(backButton_onRelease);
 			this._button_join.addEventListener(starling.events.Event.TRIGGERED,joinButton_onRelease);

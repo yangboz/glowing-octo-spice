@@ -93,8 +93,8 @@ package
 			_starling.start();
 			//FlexGlobals configurations here.
 			FlexGlobals.flashStage=stage;
-			FlexGlobals.pluginProvider = SingletonFactory.produce(PlayerIoPlugin);
-//			FlexGlobals.pluginProvider = SingletonFactory.produce(App42Plugin);
+//			FlexGlobals.pluginProvider = SingletonFactory.produce(PlayerIoPlugin);
+			FlexGlobals.pluginProvider = SingletonFactory.produce(App42Plugin);
 			// loader info.
 			this.loaderInfo.addEventListener(flash.events.Event.COMPLETE, loaderInfoCompleteHandler);
 		}
