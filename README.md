@@ -1,7 +1,7 @@
 glowing-octo-spice
 ==================
 
-Things to A/B test with POC.
+Things to A/B test with POC,also a DEMO on "sana"-AS3 skeleton project. 
 
 API: http://api.shephertz.com/app42-docs/multivariate-ab-testing/
 
