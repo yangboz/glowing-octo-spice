@@ -111,7 +111,8 @@ package com.com.derp_octo_lana.app.views
 			//			this._theme = new MinimalTheme(this.stage, !isDesktop);
 			//			this._theme = new AeonDesktopTheme(this.stage);
 			//			this._theme = new AzureTheme(this.stage, !isDesktop);
-			this._theme = new MetalWorksMobileTheme(this.stage, !isDesktop);
+//			this._theme = new MetalWorksMobileTheme(this.stage, !isDesktop);
+			this._theme = new MetalWorksMobileTheme(false);
 			const originalThemeDPI:int = this._theme.originalDPI;
 			
 			this._navigator = new ScreenNavigator();
