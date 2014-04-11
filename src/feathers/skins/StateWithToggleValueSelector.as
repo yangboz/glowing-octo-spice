@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -111,7 +111,7 @@ package feathers.skins
 			if(target is IToggle && IToggle(target).isSelected)
 			{
 				value = this.stateToSelectedValue[state];
-				if(!value)
+				if(value === null)
 				{
 					value = this.defaultSelectedValue;
 				}
@@ -120,7 +120,7 @@ package feathers.skins
 			{
 				value = this.stateToValue[state];
 			}
-			if(!value)
+			if(value === null)
 			{
 				value = this.defaultValue;
 			}

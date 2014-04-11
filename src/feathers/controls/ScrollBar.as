@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -10,6 +10,7 @@ package feathers.controls
 	import feathers.core.FeathersControl;
 	import feathers.core.PropertyProxy;
 	import feathers.events.FeathersEventType;
+	import feathers.skins.IStyleProvider;
 	import feathers.utils.math.clamp;
 	import feathers.utils.math.roundToNearest;
 
@@ -26,6 +27,21 @@ package feathers.controls
 	/**
 	 * Dispatched when the scroll bar's value changes.
 	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
 	 * @eventType starling.events.Event.CHANGE
 	 */
 	[Event(name="change",type="starling.events.Event")]
@@ -34,6 +50,21 @@ package feathers.controls
 	 * Dispatched when the user starts interacting with the scroll bar's thumb,
 	 * track, or buttons.
 	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
 	 * @eventType feathers.events.FeathersEventType.BEGIN_INTERACTION
 	 */
 	[Event(name="beginInteraction",type="starling.events.Event")]
@@ -41,6 +72,21 @@ package feathers.controls
 	/**
 	 * Dispatched when the user stops interacting with the scroll bar's thumb,
 	 * track, or buttons.
+	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
 	 *
 	 * @eventType feathers.events.FeathersEventType.END_INTERACTION
 	 */
@@ -53,6 +99,18 @@ package feathers.controls
 	 * <code>SimpleScrollBar</code> is probably a better choice as it provides
 	 * only the thumb to indicate position without all the extra chrome.
 	 *
+	 * <p>The following example updates a list to use scroll bars:</p>
+	 *
+	 * <listing version="3.0">
+	 * list.horizontalScrollBarFactory = function():IScrollBar
+	 * {
+	 *     return new ScrollBar();
+	 * };
+	 * list.verticalScrollBarFactory = function():IScrollBar
+	 * {
+	 *     return new ScrollBar();
+	 * };</listing>
+	 *
 	 * @see http://wiki.starling-framework.org/feathers/scroll-bar
 	 * @see SimpleScrollBar
 	 */
@@ -62,11 +120,6 @@ package feathers.controls
 		 * @private
 		 */
 		private static const HELPER_POINT:Point = new Point();
-
-		/**
-		 * @private
-		 */
-		private static const HELPER_TOUCHES_VECTOR:Vector.<Touch> = new <Touch>[];
 
 		/**
 		 * @private
@@ -126,7 +179,7 @@ package feathers.controls
 		 * track when it is triggered to scroll by a page instead of a step.
 		 *
 		 * <p>Since the width and height of the tracks will change, consider
-		 * sing a special display object such as a <code>Scale9Image</code>,
+		 * using a special display object such as a <code>Scale9Image</code>,
 		 * <code>Scale3Image</code> or a <code>TiledImage</code> that is
 		 * designed to be resized dynamically.</p>
 		 *
@@ -177,6 +230,15 @@ package feathers.controls
 		public static const DEFAULT_CHILD_NAME_INCREMENT_BUTTON:String = "feathers-scroll-bar-increment-button";
 
 		/**
+		 * The default <code>IStyleProvider</code> for all <code>ScrollBar</code>
+		 * components.
+		 *
+		 * @default null
+		 * @see feathers.core.FeathersControl#styleProvider
+		 */
+		public static var styleProvider:IStyleProvider;
+
+		/**
 		 * @private
 		 */
 		protected static function defaultThumbFactory():Button
@@ -221,40 +283,76 @@ package feathers.controls
 		 */
 		public function ScrollBar()
 		{
+			this._styleProvider = ScrollBar.styleProvider;
 			this.addEventListener(Event.REMOVED_FROM_STAGE, removedFromStageHandler);
 		}
 
 		/**
-		 * The value added to the <code>nameList</code> of the minimum track.
+		 * The value added to the <code>nameList</code> of the minimum track. This
+		 * variable is <code>protected</code> so that sub-classes can customize
+		 * the minimum track name in their constructors instead of using the default
+		 * name defined by <code>DEFAULT_CHILD_NAME_MINIMUM_TRACK</code>.
 		 *
+		 * <p>To customize the minimum track name without subclassing, see
+		 * <code>customMinimumTrackName</code>.</p>
+		 *
+		 * @see #customMinimumTrackName
 		 * @see feathers.core.IFeathersControl#nameList
 		 */
 		protected var minimumTrackName:String = DEFAULT_CHILD_NAME_MINIMUM_TRACK;
 
 		/**
-		 * The value added to the <code>nameList</code> of the maximum track.
+		 * The value added to the <code>nameList</code> of the maximum track. This
+		 * variable is <code>protected</code> so that sub-classes can customize
+		 * the maximum track name in their constructors instead of using the default
+		 * name defined by <code>DEFAULT_CHILD_NAME_MAXIMUM_TRACK</code>.
 		 *
+		 * <p>To customize the maximum track name without subclassing, see
+		 * <code>customMaximumTrackName</code>.</p>
+		 *
+		 * @see #customMaximumTrackName
 		 * @see feathers.core.IFeathersControl#nameList
 		 */
 		protected var maximumTrackName:String = DEFAULT_CHILD_NAME_MAXIMUM_TRACK;
 
 		/**
-		 * The value added to the <code>nameList</code> of the thumb.
+		 * The value added to the <code>nameList</code> of the thumb. This
+		 * variable is <code>protected</code> so that sub-classes can customize
+		 * the thumb name in their constructors instead of using the default
+		 * name defined by <code>DEFAULT_CHILD_NAME_THUMB</code>.
 		 *
+		 * <p>To customize the thumb name without subclassing, see
+		 * <code>customThumbName</code>.</p>
+		 *
+		 * @see #customThumbName
 		 * @see feathers.core.IFeathersControl#nameList
 		 */
 		protected var thumbName:String = DEFAULT_CHILD_NAME_THUMB;
 
 		/**
-		 * The value added to the <code>nameList</code> of the decrement button.
+		 * The value added to the <code>nameList</code> of the decrement button. This
+		 * variable is <code>protected</code> so that sub-classes can customize
+		 * the decrement button name in their constructors instead of using the default
+		 * name defined by <code>DEFAULT_CHILD_NAME_DECREMENT_BUTTON</code>.
 		 *
+		 * <p>To customize the decrement button name without subclassing, see
+		 * <code>customDecrementButtonName</code>.</p>
+		 *
+		 * @see #customDecrementButtonName
 		 * @see feathers.core.IFeathersControl#nameList
 		 */
 		protected var decrementButtonName:String = DEFAULT_CHILD_NAME_DECREMENT_BUTTON;
 
 		/**
-		 * The value added to the <code>nameList</code> of the increment button.
+		 * The value added to the <code>nameList</code> of the increment button. This
+		 * variable is <code>protected</code> so that sub-classes can customize
+		 * the increment button name in their constructors instead of using the default
+		 * name defined by <code>DEFAULT_CHILD_NAME_INCREMENT_BUTTON</code>.
 		 *
+		 * <p>To customize the increment button name without subclassing, see
+		 * <code>customIncrementButtonName</code>.</p>
+		 *
+		 * @see #customIncrementButtonName
 		 * @see feathers.core.IFeathersControl#nameList
 		 */
 		protected var incrementButtonName:String = DEFAULT_CHILD_NAME_INCREMENT_BUTTON;
@@ -291,26 +389,51 @@ package feathers.controls
 
 		/**
 		 * The scroll bar's decrement button sub-component.
+		 *
+		 * <p>For internal use in subclasses.</p>
+		 *
+		 * @see #decrementButtonFactory
+		 * @see #createDecrementButton()
 		 */
 		protected var decrementButton:Button;
 
 		/**
 		 * The scroll bar's increment button sub-component.
+		 *
+		 * <p>For internal use in subclasses.</p>
+		 *
+		 * @see #incrementButtonFactory
+		 * @see #createIncrementButton()
 		 */
 		protected var incrementButton:Button;
 
 		/**
 		 * The scroll bar's thumb sub-component.
+		 *
+		 * <p>For internal use in subclasses.</p>
+		 *
+		 * @see #thumbFactory
+		 * @see #createThumb()
 		 */
 		protected var thumb:Button;
 
 		/**
 		 * The scroll bar's minimum track sub-component.
+		 *
+		 * <p>For internal use in subclasses.</p>
+		 *
+		 * @see #minimumTrackFactory
+		 * @see #createMinimumTrack()
 		 */
 		protected var minimumTrack:Button;
 
 		/**
 		 * The scroll bar's maximum track sub-component.
+		 *
+		 * <p>For internal use in subclasses.</p>
+		 *
+		 * @see #maximumTrackFactory
+		 * @see #createMaximumTrack()
 		 */
 		protected var maximumTrack:Button;
 
@@ -325,7 +448,13 @@ package feathers.controls
 		 * vertically. When this value changes, the scroll bar's width and
 		 * height values do not change automatically.
 		 *
-		 * @default DIRECTION_HORIZONTAL
+		 * <p>In the following example, the direction is changed to vertical:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.direction = ScrollBar.DIRECTION_VERTICAL;</listing>
+		 *
+		 * @default ScrollBar.DIRECTION_HORIZONTAL
+		 *
 		 * @see #DIRECTION_HORIZONTAL
 		 * @see #DIRECTION_VERTICAL
 		 */
@@ -345,6 +474,11 @@ package feathers.controls
 			}
 			this._direction = value;
 			this.invalidate(INVALIDATION_FLAG_DATA);
+			this.invalidate(INVALIDATION_FLAG_DECREMENT_BUTTON_FACTORY);
+			this.invalidate(INVALIDATION_FLAG_INCREMENT_BUTTON_FACTORY);
+			this.invalidate(INVALIDATION_FLAG_MINIMUM_TRACK_FACTORY);
+			this.invalidate(INVALIDATION_FLAG_MAXIMUM_TRACK_FACTORY);
+			this.invalidate(INVALIDATION_FLAG_THUMB_FACTORY);
 		}
 
 		/**
@@ -354,6 +488,14 @@ package feathers.controls
 
 		/**
 		 * @inheritDoc
+		 *
+		 * @default 0
+		 *
+		 * @see #minimum
+		 * @see #maximum
+		 * @see #step
+		 * @see #page
+		 * @see #event:change
 		 */
 		public function get value():Number
 		{
@@ -385,6 +527,11 @@ package feathers.controls
 
 		/**
 		 * @inheritDoc
+		 *
+		 * @default 0
+		 *
+		 * @see #value
+		 * @see #maximum
 		 */
 		public function get minimum():Number
 		{
@@ -411,6 +558,11 @@ package feathers.controls
 
 		/**
 		 * @inheritDoc
+		 *
+		 * @default 0
+		 *
+		 * @see #value
+		 * @see #minimum
 		 */
 		public function get maximum():Number
 		{
@@ -437,6 +589,11 @@ package feathers.controls
 
 		/**
 		 * @inheritDoc
+		 *
+		 * @default 0
+		 *
+		 * @see #value
+		 * @see #page
 		 */
 		public function get step():Number
 		{
@@ -458,6 +615,11 @@ package feathers.controls
 
 		/**
 		 * @inheritDoc
+		 *
+		 * @default 0
+		 *
+		 * @see #value
+		 * @see #step
 		 */
 		public function get page():Number
 		{
@@ -482,6 +644,18 @@ package feathers.controls
 		 * <code>padding</code> getter always returns the value of
 		 * <code>paddingTop</code>, but the other padding values may be
 		 * different.
+		 *
+		 * <p>In the following example, the padding is changed to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.padding = 20;</listing>
+		 *
+		 * @default 0
+		 *
+		 * @see #paddingTop
+		 * @see #paddingRight
+		 * @see #paddingBottom
+		 * @see #paddingLeft
 		 */
 		public function get padding():Number
 		{
@@ -507,6 +681,13 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, above the content, not
 		 * including the track(s).
+		 *
+		 * <p>In the following example, the top padding is changed to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.paddingTop = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingTop():Number
 		{
@@ -534,6 +715,13 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, to the right of the content, not
 		 * including the track(s).
+		 *
+		 * <p>In the following example, the right padding is changed to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.paddingRight = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingRight():Number
 		{
@@ -561,6 +749,13 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, below the content, not
 		 * including the track(s).
+		 *
+		 * <p>In the following example, the bottom padding is changed to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.paddingBottom = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingBottom():Number
 		{
@@ -588,6 +783,13 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, to the left of the content, not
 		 * including the track(s).
+		 *
+		 * <p>In the following example, the left padding is changed to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.paddingLeft = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingLeft():Number
 		{
@@ -626,6 +828,13 @@ package feathers.controls
 		 * The time, in seconds, before actions are repeated. The first repeat
 		 * happens after a delay that is five times longer than the following
 		 * repeats.
+		 *
+		 * <p>In the following example, the repeat delay is changed to 500 milliseconds:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.repeatDelay = 0.5;</listing>
+		 *
+		 * @default 0.05
 		 */
 		public function get repeatDelay():Number
 		{
@@ -653,6 +862,13 @@ package feathers.controls
 		/**
 		 * Determines if the scroll bar dispatches the <code>Event.CHANGE</code>
 		 * event every time the thumb moves, or only once it stops moving.
+		 *
+		 * <p>In the following example, live dragging is disabled:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.liveDragging = false;</listing>
+		 *
+		 * @default true
 		 */
 		public var liveDragging:Boolean = true;
 
@@ -666,7 +882,13 @@ package feathers.controls
 		 * Determines how the minimum and maximum track skins are positioned and
 		 * sized.
 		 *
-		 * @default TRACK_LAYOUT_MODE_SINGLE
+		 * <p>In the following example, the scroll bar is given two tracks:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.trackLayoutMode = ScrollBar.TRACK_LAYOUT_MODE_MIN_MAX;</listing>
+		 *
+		 * @default ScrollBar.TRACK_LAYOUT_MODE_SINGLE
+		 *
 		 * @see #TRACK_LAYOUT_MODE_SINGLE
 		 * @see #TRACK_LAYOUT_MODE_MIN_MAX
 		 */
@@ -685,7 +907,7 @@ package feathers.controls
 				return;
 			}
 			this._trackLayoutMode = value;
-			this.invalidate(INVALIDATION_FLAG_STYLES);
+			this.invalidate(INVALIDATION_FLAG_LAYOUT);
 		}
 
 		/**
@@ -694,15 +916,31 @@ package feathers.controls
 		protected var _minimumTrackFactory:Function;
 
 		/**
-		 * A function used to generate the scroll bar's minimum track sub-component.
-		 * This can be used to change properties on the minimum track when it is first
-		 * created. For instance, if you are skinning Feathers components
-		 * without a theme, you might use <code>minimumTrackFactory</code> to set
-		 * skins and other styles on the minimum track.
+		 * A function used to generate the scroll bar's minimum track
+		 * sub-component. The minimum track must be an instance of
+		 * <code>Button</code>. This factory can be used to change properties on
+		 * the minimum track when it is first created. For instance, if you
+		 * are skinning Feathers components without a theme, you might use this
+		 * factory to set skins and other styles on the minimum track.
 		 *
 		 * <p>The function should have the following signature:</p>
 		 * <pre>function():Button</pre>
 		 *
+		 * <p>In the following example, a custom minimum track factory is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.minimumTrackFactory = function():Button
+		 * {
+		 *     var track:Button = new Button();
+		 *     track.defaultSkin = new Image( upTexture );
+		 *     track.downSkin = new Image( downTexture );
+		 *     return track;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.controls.Button
 		 * @see #minimumTrackProperties
 		 */
 		public function get minimumTrackFactory():Function
@@ -732,7 +970,23 @@ package feathers.controls
 		 * A name to add to the scroll bar's minimum track sub-component. Typically
 		 * used by a theme to provide different skins to different scroll bars.
 		 *
+		 * <p>In the following example, a custom minimum track name is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.customMinimumTrackName = "my-custom-minimum-track";</listing>
+		 *
+		 * <p>In your theme, you can target this sub-component name to provide
+		 * different skins than the default style:</p>
+		 *
+		 * <listing version="3.0">
+		 * setInitializerForClass( Button, customMinimumTrackInitializer, "my-custom-minimum-track");</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #DEFAULT_CHILD_NAME_MINIMUM_TRACK
 		 * @see feathers.core.FeathersControl#nameList
+		 * @see feathers.core.DisplayListWatcher
 		 * @see #minimumTrackFactory
 		 * @see #minimumTrackProperties
 		 */
@@ -762,15 +1016,29 @@ package feathers.controls
 		/**
 		 * A set of key/value pairs to be passed down to the scroll bar's
 		 * minimum track sub-component. The minimum track is a
-		 * <code>feathers.controls.Button</code> instance.
+		 * <code>feathers.controls.Button</code> instance. that is created by
+		 * <code>minimumTrackFactory</code>.
 		 *
 		 * <p>If the subcomponent has its own subcomponents, their properties
 		 * can be set too, using attribute <code>&#64;</code> notation. For example,
-		 * to set the skin on the thumb of a <code>SimpleScrollBar</code>
-		 * which is in a <code>Scroller</code> which is in a <code>List</code>,
-		 * you can use the following syntax:</p>
-		 * <pre>list.scrollerProperties.&#64;verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
-		 * 
+		 * to set the skin on the thumb which is in a <code>SimpleScrollBar</code>,
+		 * which is in a <code>List</code>, you can use the following syntax:</p>
+		 * <pre>list.verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
+		 *
+		 * <p>Setting properties in a <code>minimumTrackFactory</code> function
+		 * instead of using <code>minimumTrackProperties</code> will result in
+		 * better performance.</p>
+		 *
+		 * <p>In the following example, the scroll bar's minimum track properties
+		 * are updated:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.minimumTrackProperties.defaultSkin = new Image( upTexture );
+		 * scrollBar.minimumTrackProperties.downSkin = new Image( downTexture );</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #minimumTrackFactory
 		 * @see feathers.controls.Button
 		 */
 		public function get minimumTrackProperties():Object
@@ -822,15 +1090,31 @@ package feathers.controls
 		protected var _maximumTrackFactory:Function;
 
 		/**
-		 * A function used to generate the scroll bar's maximum track sub-component.
-		 * This can be used to change properties on the maximum track when it is first
-		 * created. For instance, if you are skinning Feathers components
-		 * without a theme, you might use <code>maximumTrackFactory</code> to set
-		 * skins and other styles on the maximum track.
+		 * A function used to generate the scroll bar's maximum track
+		 * sub-component. The maximum track must be an instance of
+		 * <code>Button</code>. This factory can be used to change properties on
+		 * the maximum track when it is first created. For instance, if you
+		 * are skinning Feathers components without a theme, you might use this
+		 * factory to set skins and other styles on the maximum track.
 		 *
 		 * <p>The function should have the following signature:</p>
 		 * <pre>function():Button</pre>
 		 *
+		 * <p>In the following example, a custom maximum track factory is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.maximumTrackFactory = function():Button
+		 * {
+		 *     var track:Button = new Button();
+		 *     track.defaultSkin = new Image( upTexture );
+		 *     track.downSkin = new Image( downTexture );
+		 *     return track;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.controls.Button
 		 * @see #maximumTrackProperties
 		 */
 		public function get maximumTrackFactory():Function
@@ -860,7 +1144,23 @@ package feathers.controls
 		 * A name to add to the scroll bar's maximum track sub-component. Typically
 		 * used by a theme to provide different skins to different scroll bars.
 		 *
+		 * <p>In the following example, a custom maximum track name is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.customMaximumTrackName = "my-custom-maximum-track";</listing>
+		 *
+		 * <p>In your theme, you can target this sub-component name to provide
+		 * different skins than the default style:</p>
+		 *
+		 * <listing version="3.0">
+		 * setInitializerForClass( Button, customMaximumTrackInitializer, "my-custom-maximum-track");</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #DEFAULT_CHILD_NAME_MAXIMUM_TRACK
 		 * @see feathers.core.FeathersControl#nameList
+		 * @see feathers.core.DisplayListWatcher
 		 * @see #maximumTrackFactory
 		 * @see #maximumTrackProperties
 		 */
@@ -890,15 +1190,29 @@ package feathers.controls
 		/**
 		 * A set of key/value pairs to be passed down to the scroll bar's
 		 * maximum track sub-component. The maximum track is a
-		 * <code>feathers.controls.Button</code> instance.
+		 * <code>feathers.controls.Button</code> instance that is created by
+		 * <code>maximumTrackFactory</code>.
 		 *
 		 * <p>If the subcomponent has its own subcomponents, their properties
 		 * can be set too, using attribute <code>&#64;</code> notation. For example,
-		 * to set the skin on the thumb of a <code>SimpleScrollBar</code>
-		 * which is in a <code>Scroller</code> which is in a <code>List</code>,
-		 * you can use the following syntax:</p>
-		 * <pre>list.scrollerProperties.&#64;verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
-		 * 
+		 * to set the skin on the thumb which is in a <code>SimpleScrollBar</code>,
+		 * which is in a <code>List</code>, you can use the following syntax:</p>
+		 * <pre>list.verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
+		 *
+		 * <p>Setting properties in a <code>maximumTrackFactory</code> function
+		 * instead of using <code>maximumTrackProperties</code> will result in
+		 * better performance.</p>
+		 *
+		 * <p>In the following example, the scroll bar's maximum track properties
+		 * are updated:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.maximumTrackProperties.defaultSkin = new Image( upTexture );
+		 * scrollBar.maximumTrackProperties.downSkin = new Image( downTexture );</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #maximumTrackFactory
 		 * @see feathers.controls.Button
 		 */
 		public function get maximumTrackProperties():Object
@@ -951,14 +1265,30 @@ package feathers.controls
 
 		/**
 		 * A function used to generate the scroll bar's thumb sub-component.
-		 * This can be used to change properties on the thumb when it is first
+		 * The thumb must be an instance of <code>Button</code>. This factory
+		 * can be used to change properties on the thumb when it is first
 		 * created. For instance, if you are skinning Feathers components
-		 * without a theme, you might use <code>thumbFactory</code> to set
-		 * skins and text styles on the thumb.
+		 * without a theme, you might use this factory to set skins and other
+		 * styles on the thumb.
 		 *
 		 * <p>The function should have the following signature:</p>
 		 * <pre>function():Button</pre>
 		 *
+		 * <p>In the following example, a custom thumb factory is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.thumbFactory = function():Button
+		 * {
+		 *     var thumb:Button = new Button();
+		 *     thumb.defaultSkin = new Image( upTexture );
+		 *     thumb.downSkin = new Image( downTexture );
+		 *     return thumb;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.controls.Button
 		 * @see #thumbProperties
 		 */
 		public function get thumbFactory():Function
@@ -988,7 +1318,23 @@ package feathers.controls
 		 * A name to add to the scroll bar's thumb sub-component. Typically
 		 * used by a theme to provide different skins to different scroll bars.
 		 *
+		 * <p>In the following example, a custom thumb name is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.customThumbName = "my-custom-thumb";</listing>
+		 *
+		 * <p>In your theme, you can target this sub-component name to provide
+		 * different skins than the default style:</p>
+		 *
+		 * <listing version="3.0">
+		 * setInitializerForClass( Button, customThumbInitializer, "my-custom-thumb");</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #DEFAULT_CHILD_NAME_THUMB
 		 * @see feathers.core.FeathersControl#nameList
+		 * @see feathers.core.DisplayListWatcher
 		 * @see #thumbFactory
 		 * @see #thumbProperties
 		 */
@@ -1018,15 +1364,28 @@ package feathers.controls
 		/**
 		 * A set of key/value pairs to be passed down to the scroll bar's thumb
 		 * sub-component. The thumb is a <code>feathers.controls.Button</code>
-		 * instance.
+		 * instance that is created by <code>thumbFactory</code>.
 		 *
 		 * <p>If the subcomponent has its own subcomponents, their properties
 		 * can be set too, using attribute <code>&#64;</code> notation. For example,
-		 * to set the skin on the thumb of a <code>SimpleScrollBar</code>
-		 * which is in a <code>Scroller</code> which is in a <code>List</code>,
-		 * you can use the following syntax:</p>
-		 * <pre>list.scrollerProperties.&#64;verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
-		 * 
+		 * to set the skin on the thumb which is in a <code>SimpleScrollBar</code>,
+		 * which is in a <code>List</code>, you can use the following syntax:</p>
+		 * <pre>list.verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
+		 *
+		 * <p>Setting properties in a <code>thumbFactory</code> function instead
+		 * of using <code>thumbProperties</code> will result in better
+		 * performance.</p>
+		 *
+		 * <p>In the following example, the scroll bar's thumb properties
+		 * are updated:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.thumbProperties.defaultSkin = new Image( upTexture );
+		 * scrollBar.thumbProperties.downSkin = new Image( downTexture );</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #thumbFactory
 		 * @see feathers.controls.Button
 		 */
 		public function get thumbProperties():Object
@@ -1078,15 +1437,31 @@ package feathers.controls
 		protected var _decrementButtonFactory:Function;
 
 		/**
-		 * A function used to generate the scroll bar's decrement button sub-component.
-		 * This can be used to change properties on the decrement button when it is first
-		 * created. For instance, if you are skinning Feathers components
-		 * without a theme, you might use <code>decrementButtonFactory</code> to set
-		 * skins and other styles on the maximum track.
+		 * A function used to generate the scroll bar's decrement button
+		 * sub-component. The decrement button must be an instance of
+		 * <code>Button</code>. This factory can be used to change properties on
+		 * the decrement button when it is first created. For instance, if you
+		 * are skinning Feathers components without a theme, you might use this
+		 * factory to set skins and other styles on the decrement button.
 		 *
 		 * <p>The function should have the following signature:</p>
 		 * <pre>function():Button</pre>
 		 *
+		 * <p>In the following example, a custom decrement button factory is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.decrementButtonFactory = function():Button
+		 * {
+		 *     var button:Button = new Button();
+		 *     button.defaultSkin = new Image( upTexture );
+		 *     button.downSkin = new Image( downTexture );
+		 *     return button;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.controls.Button
 		 * @see #decrementButtonProperties
 		 */
 		public function get decrementButtonFactory():Function
@@ -1116,7 +1491,23 @@ package feathers.controls
 		 * A name to add to the scroll bar's decrement button sub-component. Typically
 		 * used by a theme to provide different skins to different scroll bars.
 		 *
+		 * <p>In the following example, a custom decrement button name is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.customDecrementButtonName = "my-custom-decrement-button";</listing>
+		 *
+		 * <p>In your theme, you can target this sub-component name to provide
+		 * different skins than the default style:</p>
+		 *
+		 * <listing version="3.0">
+		 * setInitializerForClass( Button, customDecrementButtonInitializer, "my-custom-decrement-button");</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #DEFAULT_CHILD_NAME_DECREMENT_BUTTON
 		 * @see feathers.core.FeathersControl#nameList
+		 * @see feathers.core.DisplayListWatcher
 		 * @see #decrementButtonFactory
 		 * @see #decrementButtonProperties
 		 */
@@ -1146,15 +1537,29 @@ package feathers.controls
 		/**
 		 * A set of key/value pairs to be passed down to the scroll bar's
 		 * decrement button sub-component. The decrement button is a
-		 * <code>feathers.controls.Button</code> instance.
+		 * <code>feathers.controls.Button</code> instance that is created by
+		 * <code>decrementButtonFactory</code>.
 		 *
 		 * <p>If the subcomponent has its own subcomponents, their properties
 		 * can be set too, using attribute <code>&#64;</code> notation. For example,
-		 * to set the skin on the thumb of a <code>SimpleScrollBar</code>
-		 * which is in a <code>Scroller</code> which is in a <code>List</code>,
-		 * you can use the following syntax:</p>
-		 * <pre>list.scrollerProperties.&#64;verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
-		 * 
+		 * to set the skin on the thumb which is in a <code>SimpleScrollBar</code>,
+		 * which is in a <code>List</code>, you can use the following syntax:</p>
+		 * <pre>list.verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
+		 *
+		 * <p>Setting properties in a <code>decrementButtonFactory</code>
+		 * function instead of using <code>decrementButtonProperties</code> will
+		 * result in better performance.</p>
+		 *
+		 * <p>In the following example, the scroll bar's decrement button properties
+		 * are updated:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.decrementButtonProperties.defaultSkin = new Image( upTexture );
+		 * scrollBar.decrementButtonProperties.downSkin = new Image( downTexture );</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #decrementButtonFactory
 		 * @see feathers.controls.Button
 		 */
 		public function get decrementButtonProperties():Object
@@ -1206,15 +1611,31 @@ package feathers.controls
 		protected var _incrementButtonFactory:Function;
 
 		/**
-		 * A function used to generate the scroll bar's increment button sub-component.
-		 * This can be used to change properties on the increment button when it is first
-		 * created. For instance, if you are skinning Feathers components
-		 * without a theme, you might use <code>incrementButtonFactory</code> to set
-		 * skins and other styles on the maximum track.
+		 * A function used to generate the scroll bar's increment button
+		 * sub-component. The increment button must be an instance of
+		 * <code>Button</code>. This factory can be used to change properties on
+		 * the increment button when it is first created. For instance, if you
+		 * are skinning Feathers components without a theme, you might use this
+		 * factory to set skins and other styles on the increment button.
 		 *
 		 * <p>The function should have the following signature:</p>
 		 * <pre>function():Button</pre>
 		 *
+		 * <p>In the following example, a custom increment button factory is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.incrementButtonFactory = function():Button
+		 * {
+		 *     var button:Button = new Button();
+		 *     button.defaultSkin = new Image( upTexture );
+		 *     button.downSkin = new Image( downTexture );
+		 *     return button;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.controls.Button
 		 * @see #incrementButtonProperties
 		 */
 		public function get incrementButtonFactory():Function
@@ -1244,7 +1665,23 @@ package feathers.controls
 		 * A name to add to the scroll bar's increment button sub-component. Typically
 		 * used by a theme to provide different skins to different scroll bars.
 		 *
+		 * <p>In the following example, a custom increment button name is passed
+		 * to the scroll bar:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.customIncrementButtonName = "my-custom-increment-button";</listing>
+		 *
+		 * <p>In your theme, you can target this sub-component name to provide
+		 * different skins than the default style:</p>
+		 *
+		 * <listing version="3.0">
+		 * setInitializerForClass( Button, customIncrementInitializer, "my-custom-increment-button");</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #DEFAULT_CHILD_NAME_INCREMENT_BUTTON
 		 * @see feathers.core.FeathersControl#nameList
+		 * @see feathers.core.DisplayListWatcher
 		 * @see #incrementButtonFactory
 		 * @see #incrementButtonProperties
 		 */
@@ -1274,15 +1711,29 @@ package feathers.controls
 		/**
 		 * A set of key/value pairs to be passed down to the scroll bar's
 		 * increment button sub-component. The increment button is a
-		 * <code>feathers.controls.Button</code> instance.
+		 * <code>feathers.controls.Button</code> instance that is created by
+		 * <code>incrementButtonFactory</code>.
 		 *
 		 * <p>If the subcomponent has its own subcomponents, their properties
 		 * can be set too, using attribute <code>&#64;</code> notation. For example,
-		 * to set the skin on the thumb of a <code>SimpleScrollBar</code>
-		 * which is in a <code>Scroller</code> which is in a <code>List</code>,
-		 * you can use the following syntax:</p>
-		 * <pre>list.scrollerProperties.&#64;verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
-		 * 
+		 * to set the skin on the thumb which is in a <code>SimpleScrollBar</code>,
+		 * which is in a <code>List</code>, you can use the following syntax:</p>
+		 * <pre>list.verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
+		 *
+		 * <p>Setting properties in a <code>incrementButtonFactory</code>
+		 * function instead of using <code>incrementButtonProperties</code> will
+		 * result in better performance.</p>
+		 *
+		 * <p>In the following example, the scroll bar's increment button properties
+		 * are updated:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollBar.incrementButtonProperties.defaultSkin = new Image( upTexture );
+		 * scrollBar.incrementButtonProperties.downSkin = new Image( downTexture );</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #incrementButtonFactory
 		 * @see feathers.controls.Button
 		 */
 		public function get incrementButtonProperties():Object
@@ -1367,6 +1818,7 @@ package feathers.controls
 			const stylesInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_STYLES);
 			var sizeInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_SIZE);
 			const stateInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_STATE);
+			const layoutInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_LAYOUT);
 			const thumbFactoryInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_THUMB_FACTORY);
 			const minimumTrackFactoryInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_MINIMUM_TRACK_FACTORY);
 			const maximumTrackFactoryInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_MAXIMUM_TRACK_FACTORY);
@@ -1381,7 +1833,10 @@ package feathers.controls
 			{
 				this.createMinimumTrack();
 			}
-			this.createOrDestroyMaximumTrackIfNeeded(maximumTrackFactoryInvalid);
+			if(maximumTrackFactoryInvalid || layoutInvalid)
+			{
+				this.createMaximumTrack();
+			}
 			if(decrementButtonFactoryInvalid)
 			{
 				this.createDecrementButton();
@@ -1399,7 +1854,7 @@ package feathers.controls
 			{
 				this.refreshMinimumTrackStyles();
 			}
-			if(maximumTrackFactoryInvalid || stylesInvalid)
+			if((maximumTrackFactoryInvalid || stylesInvalid || layoutInvalid) && this.maximumTrack)
 			{
 				this.refreshMaximumTrackStyles();
 			}
@@ -1413,39 +1868,47 @@ package feathers.controls
 			}
 
 			const isEnabled:Boolean = this._isEnabled && this._maximum > this._minimum;
-			if(stateInvalid || dataInvalid || thumbFactoryInvalid)
+			if(dataInvalid || stateInvalid || thumbFactoryInvalid)
 			{
 				this.thumb.isEnabled = isEnabled;
 			}
-			if(stateInvalid || dataInvalid || minimumTrackFactoryInvalid)
+			if(dataInvalid || stateInvalid || minimumTrackFactoryInvalid)
 			{
 				this.minimumTrack.isEnabled = isEnabled;
 			}
-			if((stateInvalid || dataInvalid || maximumTrackFactoryInvalid) && this.maximumTrack)
+			if((dataInvalid || stateInvalid || maximumTrackFactoryInvalid || layoutInvalid) && this.maximumTrack)
 			{
 				this.maximumTrack.isEnabled = isEnabled;
 			}
-			if(stateInvalid || dataInvalid || decrementButtonFactoryInvalid)
+			if(dataInvalid || stateInvalid || decrementButtonFactoryInvalid)
 			{
 				this.decrementButton.isEnabled = isEnabled;
 			}
-			if(stateInvalid || dataInvalid || incrementButtonFactoryInvalid)
+			if(dataInvalid || stateInvalid || incrementButtonFactoryInvalid)
 			{
 				this.incrementButton.isEnabled = isEnabled;
 			}
 
 			sizeInvalid = this.autoSizeIfNeeded() || sizeInvalid;
 
-			if(thumbFactoryInvalid || minimumTrackFactoryInvalid || maximumTrackFactoryInvalid ||
-				decrementButtonFactoryInvalid || incrementButtonFactoryInvalid ||
-				dataInvalid || stylesInvalid || sizeInvalid)
-			{
-				this.layout();
-			}
+			this.layout();
 		}
 
 		/**
-		 * @private
+		 * If the component's dimensions have not been set explicitly, it will
+		 * measure its content and determine an ideal size for itself. If the
+		 * <code>explicitWidth</code> or <code>explicitHeight</code> member
+		 * variables are set, those value will be used without additional
+		 * measurement. If one is set, but not the other, the dimension with the
+		 * explicit value will not be measured, but the other non-explicit
+		 * dimension will still need measurement.
+		 *
+		 * <p>Calls <code>setSizeInternal()</code> to set up the
+		 * <code>actualWidth</code> and <code>actualHeight</code> member
+		 * variables used for layout.</p>
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
 		 */
 		protected function autoSizeIfNeeded():Boolean
 		{
@@ -1536,7 +1999,15 @@ package feathers.controls
 		}
 
 		/**
-		 * @private
+		 * Creates and adds the <code>thumb</code> sub-component and
+		 * removes the old instance, if one exists.
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
+		 *
+		 * @see #thumb
+		 * @see #thumbFactory
+		 * @see #customThumbName
 		 */
 		protected function createThumb():void
 		{
@@ -1549,14 +2020,23 @@ package feathers.controls
 			const factory:Function = this._thumbFactory != null ? this._thumbFactory : defaultThumbFactory;
 			const thumbName:String = this._customThumbName != null ? this._customThumbName : this.thumbName;
 			this.thumb = Button(factory());
-			this.thumb.nameList.add(thumbName);
+			this.thumb.styleNameList.add(thumbName);
 			this.thumb.keepDownStateOnRollOut = true;
+			this.thumb.isFocusEnabled = false;
 			this.thumb.addEventListener(TouchEvent.TOUCH, thumb_touchHandler);
 			this.addChild(this.thumb);
 		}
 
 		/**
-		 * @private
+		 * Creates and adds the <code>minimumTrack</code> sub-component and
+		 * removes the old instance, if one exists.
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
+		 *
+		 * @see #minimumTrack
+		 * @see #minimumTrackFactory
+		 * @see #customMinimumTrackName
 		 */
 		protected function createMinimumTrack():void
 		{
@@ -1569,23 +2049,29 @@ package feathers.controls
 			const factory:Function = this._minimumTrackFactory != null ? this._minimumTrackFactory : defaultMinimumTrackFactory;
 			const minimumTrackName:String = this._customMinimumTrackName != null ? this._customMinimumTrackName : this.minimumTrackName;
 			this.minimumTrack = Button(factory());
-			this.minimumTrack.nameList.add(minimumTrackName);
+			this.minimumTrack.styleNameList.add(minimumTrackName);
 			this.minimumTrack.keepDownStateOnRollOut = true;
+			this.minimumTrack.isFocusEnabled = false;
 			this.minimumTrack.addEventListener(TouchEvent.TOUCH, track_touchHandler);
 			this.addChildAt(this.minimumTrack, 0);
 		}
 
 		/**
-		 * @private
+		 * Creates and adds the <code>maximumTrack</code> sub-component and
+		 * removes the old instance, if one exists. If the maximum track is not
+		 * needed, it will not be created.
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
+		 *
+		 * @see #maximumTrack
+		 * @see #maximumTrackFactory
+		 * @see #customMaximumTrackName
 		 */
-		protected function createOrDestroyMaximumTrackIfNeeded(maximumTrackFactoryInvalid:Boolean):void
+		protected function createMaximumTrack():void
 		{
 			if(this._trackLayoutMode == TRACK_LAYOUT_MODE_MIN_MAX)
 			{
-				if(!maximumTrackFactoryInvalid)
-				{
-					return;
-				}
 				if(this.maximumTrack)
 				{
 					this.maximumTrack.removeFromParent(true);
@@ -1594,8 +2080,9 @@ package feathers.controls
 				const factory:Function = this._maximumTrackFactory != null ? this._maximumTrackFactory : defaultMaximumTrackFactory;
 				const maximumTrackName:String = this._customMaximumTrackName != null ? this._customMaximumTrackName : this.maximumTrackName;
 				this.maximumTrack = Button(factory());
-				this.maximumTrack.nameList.add(maximumTrackName);
+				this.maximumTrack.styleNameList.add(maximumTrackName);
 				this.maximumTrack.keepDownStateOnRollOut = true;
+				this.maximumTrack.isFocusEnabled = false;
 				this.maximumTrack.addEventListener(TouchEvent.TOUCH, track_touchHandler);
 				this.addChildAt(this.maximumTrack, 1);
 			}
@@ -1607,7 +2094,15 @@ package feathers.controls
 		}
 
 		/**
-		 * @private
+		 * Creates and adds the <code>decrementButton</code> sub-component and
+		 * removes the old instance, if one exists.
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
+		 *
+		 * @see #decrementButton
+		 * @see #decrementButtonFactory
+		 * @see #customDecremenButtonName
 		 */
 		protected function createDecrementButton():void
 		{
@@ -1620,14 +2115,23 @@ package feathers.controls
 			const factory:Function = this._decrementButtonFactory != null ? this._decrementButtonFactory : defaultDecrementButtonFactory;
 			const decrementButtonName:String = this._customDecrementButtonName != null ? this._customDecrementButtonName : this.decrementButtonName;
 			this.decrementButton = Button(factory());
-			this.decrementButton.nameList.add(decrementButtonName);
+			this.decrementButton.styleNameList.add(decrementButtonName);
 			this.decrementButton.keepDownStateOnRollOut = true;
+			this.decrementButton.isFocusEnabled = false;
 			this.decrementButton.addEventListener(TouchEvent.TOUCH, decrementButton_touchHandler);
 			this.addChild(this.decrementButton);
 		}
 
 		/**
-		 * @private
+		 * Creates and adds the <code>incrementButton</code> sub-component and
+		 * removes the old instance, if one exists.
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
+		 *
+		 * @see #incrementButton
+		 * @see #incrementButtonFactory
+		 * @see #customIncrementButtonName
 		 */
 		protected function createIncrementButton():void
 		{
@@ -1640,8 +2144,9 @@ package feathers.controls
 			const factory:Function = this._incrementButtonFactory != null ? this._incrementButtonFactory : defaultIncrementButtonFactory;
 			const incrementButtonName:String = this._customIncrementButtonName != null ? this._customIncrementButtonName : this.incrementButtonName;
 			this.incrementButton = Button(factory());
-			this.incrementButton.nameList.add(incrementButtonName);
+			this.incrementButton.styleNameList.add(incrementButtonName);
 			this.incrementButton.keepDownStateOnRollOut = true;
+			this.incrementButton.isFocusEnabled = false;
 			this.incrementButton.addEventListener(TouchEvent.TOUCH, incrementButton_touchHandler);
 			this.addChild(this.incrementButton);
 		}
@@ -1842,6 +2347,10 @@ package feathers.controls
 				this.maximumTrack.width = this.actualWidth - this.maximumTrack.x;
 				this.maximumTrack.height = this.actualHeight;
 			}
+
+			//final validation to avoid juggler next frame issues
+			this.minimumTrack.validate();
+			this.maximumTrack.validate();
 		}
 
 		/**
@@ -1863,6 +2372,9 @@ package feathers.controls
 				this.minimumTrack.width = this.actualWidth - this.minimumTrack.x;
 				this.minimumTrack.height = this.actualHeight;
 			}
+
+			//final validation to avoid juggler next frame issues
+			this.minimumTrack.validate();
 		}
 
 		/**
@@ -1870,20 +2382,26 @@ package feathers.controls
 		 */
 		protected function locationToValue(location:Point):Number
 		{
-			var percentage:Number;
+			var percentage:Number = 0;
 			if(this._direction == DIRECTION_VERTICAL)
 			{
-				const trackScrollableHeight:Number = this.actualHeight - this.thumb.height - this.decrementButton.height - this.incrementButton.height - this._paddingTop - this._paddingBottom;
-				const yOffset:Number = location.y - this._touchStartY - this._paddingTop;
-				const yPosition:Number = Math.min(Math.max(0, this._thumbStartY + yOffset - this.decrementButton.height), trackScrollableHeight);
-				percentage = yPosition / trackScrollableHeight;
+				var trackScrollableHeight:Number = this.actualHeight - this.thumb.height - this.decrementButton.height - this.incrementButton.height - this._paddingTop - this._paddingBottom;
+				if(trackScrollableHeight > 0)
+				{
+					var yOffset:Number = location.y - this._touchStartY - this._paddingTop;
+					var yPosition:Number = Math.min(Math.max(0, this._thumbStartY + yOffset - this.decrementButton.height), trackScrollableHeight);
+					percentage = yPosition / trackScrollableHeight;
+				}
 			}
 			else //horizontal
 			{
-				const trackScrollableWidth:Number = this.actualWidth - this.thumb.width - this.decrementButton.width - this.incrementButton.width - this._paddingLeft - this._paddingRight;
-				const xOffset:Number = location.x - this._touchStartX - this._paddingLeft;
-				const xPosition:Number = Math.min(Math.max(0, this._thumbStartX + xOffset - this.decrementButton.width), trackScrollableWidth);
-				percentage = xPosition / trackScrollableWidth;
+				var trackScrollableWidth:Number = this.actualWidth - this.thumb.width - this.decrementButton.width - this.incrementButton.width - this._paddingLeft - this._paddingRight;
+				if(trackScrollableWidth > 0)
+				{
+					var xOffset:Number = location.x - this._touchStartX - this._paddingLeft;
+					var xPosition:Number = Math.min(Math.max(0, this._thumbStartX + xOffset - this.decrementButton.width), trackScrollableWidth);
+					percentage = xPosition / trackScrollableWidth;
+				}
 			}
 
 			return this._minimum + percentage * (this._maximum - this._minimum);
@@ -2015,55 +2533,36 @@ package feathers.controls
 				return;
 			}
 
-			const touches:Vector.<Touch> = event.getTouches(DisplayObject(event.currentTarget), null, HELPER_TOUCHES_VECTOR);
-			if(touches.length == 0)
-			{
-				return;
-			}
+			const track:DisplayObject = DisplayObject(event.currentTarget);
 			if(this._touchPointID >= 0)
 			{
-				var touch:Touch;
-				for each(var currentTouch:Touch in touches)
-				{
-					if(currentTouch.id == this._touchPointID)
-					{
-						touch = currentTouch;
-						break;
-					}
-				}
+				var touch:Touch = event.getTouch(track, TouchPhase.ENDED, this._touchPointID);
 				if(!touch)
 				{
-					HELPER_TOUCHES_VECTOR.length = 0;
 					return;
 				}
-				if(touch.phase == TouchPhase.ENDED)
-				{
-					this._touchPointID = -1;
-					this._repeatTimer.stop();
-					this.dispatchEventWith(FeathersEventType.END_INTERACTION);
-				}
+				this._touchPointID = -1;
+				this._repeatTimer.stop();
+				this.dispatchEventWith(FeathersEventType.END_INTERACTION);
 			}
 			else
 			{
-				for each(touch in touches)
+				touch = event.getTouch(track, TouchPhase.BEGAN);
+				if(!touch)
 				{
-					if(touch.phase == TouchPhase.BEGAN)
-					{
-						this._touchPointID = touch.id;
-						this.dispatchEventWith(FeathersEventType.BEGIN_INTERACTION);
-						touch.getLocation(this, HELPER_POINT);
-						this._touchStartX = HELPER_POINT.x;
-						this._touchStartY = HELPER_POINT.y;
-						this._thumbStartX = HELPER_POINT.x;
-						this._thumbStartY = HELPER_POINT.y;
-						this._touchValue = this.locationToValue(HELPER_POINT);
-						this.adjustPage();
-						this.startRepeatTimer(this.adjustPage);
-						break;
-					}
+					return;
 				}
+				this._touchPointID = touch.id;
+				this.dispatchEventWith(FeathersEventType.BEGIN_INTERACTION);
+				touch.getLocation(this, HELPER_POINT);
+				this._touchStartX = HELPER_POINT.x;
+				this._touchStartY = HELPER_POINT.y;
+				this._thumbStartX = HELPER_POINT.x;
+				this._thumbStartY = HELPER_POINT.y;
+				this._touchValue = this.locationToValue(HELPER_POINT);
+				this.adjustPage();
+				this.startRepeatTimer(this.adjustPage);
 			}
-			HELPER_TOUCHES_VECTOR.length = 0;
 		}
 
 		/**
@@ -2073,27 +2572,15 @@ package feathers.controls
 		{
 			if(!this._isEnabled)
 			{
+				this._touchPointID = -1;
 				return;
 			}
-			const touches:Vector.<Touch> = event.getTouches(this.thumb, null, HELPER_TOUCHES_VECTOR);
-			if(touches.length == 0)
-			{
-				return;
-			}
+
 			if(this._touchPointID >= 0)
 			{
-				var touch:Touch;
-				for each(var currentTouch:Touch in touches)
-				{
-					if(currentTouch.id == this._touchPointID)
-					{
-						touch = currentTouch;
-						break;
-					}
-				}
+				var touch:Touch = event.getTouch(this.thumb, null, this._touchPointID);
 				if(!touch)
 				{
-					HELPER_TOUCHES_VECTOR.length = 0;
 					return;
 				}
 				if(touch.phase == TouchPhase.MOVED)
@@ -2119,23 +2606,20 @@ package feathers.controls
 			}
 			else
 			{
-				for each(touch in touches)
+				touch = event.getTouch(this.thumb, TouchPhase.BEGAN);
+				if(!touch)
 				{
-					if(touch.phase == TouchPhase.BEGAN)
-					{
-						touch.getLocation(this, HELPER_POINT);
-						this._touchPointID = touch.id;
-						this._thumbStartX = this.thumb.x;
-						this._thumbStartY = this.thumb.y;
-						this._touchStartX = HELPER_POINT.x;
-						this._touchStartY = HELPER_POINT.y;
-						this.isDragging = true;
-						this.dispatchEventWith(FeathersEventType.BEGIN_INTERACTION);
-						break;
-					}
+					return;
 				}
+				touch.getLocation(this, HELPER_POINT);
+				this._touchPointID = touch.id;
+				this._thumbStartX = this.thumb.x;
+				this._thumbStartY = this.thumb.y;
+				this._touchStartX = HELPER_POINT.x;
+				this._touchStartY = HELPER_POINT.y;
+				this.isDragging = true;
+				this.dispatchEventWith(FeathersEventType.BEGIN_INTERACTION);
 			}
-			HELPER_TOUCHES_VECTOR.length = 0;
 		}
 
 		/**
@@ -2145,54 +2629,33 @@ package feathers.controls
 		{
 			if(!this._isEnabled)
 			{
-				return;
-			}
-			const touches:Vector.<Touch> = event.getTouches(this.decrementButton, null, HELPER_TOUCHES_VECTOR);
-			if(touches.length == 0)
-			{
+				this._touchPointID = -1;
 				return;
 			}
 
 			if(this._touchPointID >= 0)
 			{
-				var touch:Touch;
-				for each(var currentTouch:Touch in touches)
-				{
-					if(currentTouch.id == this._touchPointID)
-					{
-						touch = currentTouch;
-						break;
-					}
-				}
-
+				var touch:Touch = event.getTouch(this.decrementButton, TouchPhase.ENDED, this._touchPointID);
 				if(!touch)
 				{
-					//end of hover
-					HELPER_TOUCHES_VECTOR.length = 0;
 					return;
 				}
-				if(touch.phase == TouchPhase.ENDED)
-				{
-					this._touchPointID = -1;
-					this._repeatTimer.stop();
-					this.dispatchEventWith(FeathersEventType.END_INTERACTION);
-				}
+				this._touchPointID = -1;
+				this._repeatTimer.stop();
+				this.dispatchEventWith(FeathersEventType.END_INTERACTION);
 			}
 			else //if we get here, we don't have a saved touch ID yet
 			{
-				for each(touch in touches)
+				touch = event.getTouch(this.decrementButton, TouchPhase.BEGAN);
+				if(!touch)
 				{
-					if(touch.phase == TouchPhase.BEGAN)
-					{
-						this.dispatchEventWith(FeathersEventType.BEGIN_INTERACTION);
-						this.decrement();
-						this.startRepeatTimer(this.decrement);
-						this._touchPointID = touch.id;
-						break;
-					}
+					return;
 				}
+				this._touchPointID = touch.id;
+				this.dispatchEventWith(FeathersEventType.BEGIN_INTERACTION);
+				this.decrement();
+				this.startRepeatTimer(this.decrement);
 			}
-			HELPER_TOUCHES_VECTOR.length = 0;
 		}
 
 		/**
@@ -2202,54 +2665,33 @@ package feathers.controls
 		{
 			if(!this._isEnabled)
 			{
-				return;
-			}
-			const touches:Vector.<Touch> = event.getTouches(this.incrementButton, null, HELPER_TOUCHES_VECTOR);
-			if(touches.length == 0)
-			{
+				this._touchPointID = -1;
 				return;
 			}
 
 			if(this._touchPointID >= 0)
 			{
-				var touch:Touch;
-				for each(var currentTouch:Touch in touches)
-				{
-					if(currentTouch.id == this._touchPointID)
-					{
-						touch = currentTouch;
-						break;
-					}
-				}
-
+				var touch:Touch = event.getTouch(this.incrementButton, TouchPhase.ENDED, this._touchPointID);
 				if(!touch)
 				{
-					//end of hover
-					HELPER_TOUCHES_VECTOR.length = 0;
 					return;
 				}
-				if(touch.phase == TouchPhase.ENDED)
-				{
-					this._touchPointID = -1;
-					this._repeatTimer.stop();
-					this.dispatchEventWith(FeathersEventType.END_INTERACTION);
-				}
+				this._touchPointID = -1;
+				this._repeatTimer.stop();
+				this.dispatchEventWith(FeathersEventType.END_INTERACTION);
 			}
 			else //if we get here, we don't have a saved touch ID yet
 			{
-				for each(touch in touches)
+				touch = event.getTouch(this.incrementButton, TouchPhase.BEGAN);
+				if(!touch)
 				{
-					if(touch.phase == TouchPhase.BEGAN)
-					{
-						this.dispatchEventWith(FeathersEventType.BEGIN_INTERACTION);
-						this.increment();
-						this.startRepeatTimer(this.increment);
-						this._touchPointID = touch.id;
-						break;
-					}
+					return;
 				}
+				this._touchPointID = touch.id;
+				this.dispatchEventWith(FeathersEventType.BEGIN_INTERACTION);
+				this.increment();
+				this.startRepeatTimer(this.increment);
 			}
-			HELPER_TOUCHES_VECTOR.length = 0;
 		}
 
 		/**

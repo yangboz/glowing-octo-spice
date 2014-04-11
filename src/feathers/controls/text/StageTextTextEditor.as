@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -11,12 +11,14 @@ package feathers.controls.text
 	import feathers.core.ITextEditor;
 	import feathers.events.FeathersEventType;
 	import feathers.text.StageTextField;
+	import feathers.utils.geom.matrixToScaleX;
+	import feathers.utils.geom.matrixToScaleY;
 
 	import flash.display.BitmapData;
-	import flash.display3D.textures.Texture;
 	import flash.events.Event;
 	import flash.events.FocusEvent;
 	import flash.events.KeyboardEvent;
+	import flash.events.SoftKeyboardEvent;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
@@ -39,18 +41,68 @@ package feathers.controls.text
 
 	/**
 	 * Dispatched when the text property changes.
+	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
 	 */
 	[Event(name="change",type="starling.events.Event")]
 
 	/**
-	 * Dispatched when the user presses the Enter key while the editor has focus.
+	 * Dispatched when the user presses the Enter key while the editor has
+	 * focus. This event may not be dispatched on some platforms, depending on
+	 * the value of <code>returnKeyLabel</code>. This issue may even occur when
+	 * using the <em>default value</em> of <code>returnKeyLabel</code>!
+	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
 	 *
 	 * @eventType feathers.events.FeathersEventType.ENTER
+	 * @see #returnKeyLabel
+	 * @see flash.text.ReturnKeyLabel
 	 */
 	[Event(name="enter",type="starling.events.Event")]
 
 	/**
 	 * Dispatched when the text editor receives focus.
+	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
 	 *
 	 * @eventType feathers.events.FeathersEventType.FOCUS_IN
 	 */
@@ -59,14 +111,80 @@ package feathers.controls.text
 	/**
 	 * Dispatched when the text editor loses focus.
 	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
 	 * @eventType feathers.events.FeathersEventType.FOCUS_OUT
 	 */
 	[Event(name="focusOut",type="starling.events.Event")]
 
 	/**
-	 * A Feathers text editor that uses the native <code>StageText</code> class
-	 * in AIR, and the custom <code>StageTextField</code> class (that simulates
-	 * <code>StageText</code>) in Flash Player.
+	 * Dispatched when the soft keyboard is activated. Not all text editors will
+	 * activate a soft keyboard.
+	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
+	 * @eventType feathers.events.FeathersEventType.SOFT_KEYBOARD_ACTIVATE
+	 */
+	[Event(name="softKeyboardActivate",type="starling.events.Event")]
+
+	/**
+	 * Dispatched when the soft keyboard is deactivated. Not all text editors
+	 * will activate a soft keyboard.
+	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
+	 * @eventType feathers.events.FeathersEventType.SOFT_KEYBOARD_DEACTIVATE
+	 */
+	[Event(name="softKeyboardDeactivate",type="starling.events.Event")]
+
+	/**
+	 * A Feathers text editor that uses the native <code>flash.text.StageText</code>
+	 * class in Adobe AIR, and the custom <code>feathers.text.StageTextField</code>
+	 * class (that simulates <code>StageText</code> using
+	 * <code>flash.text.TextField</code>) in Adobe Flash Player.
+	 *
+	 * <p>Note: Due to quirks with how the runtime manages focus with
+	 * <code>StageText</code>, <code>StageTextTextEditor</code> is not
+	 * compatible with the Feathers <code>FocusManager</code>.</p>
 	 *
 	 * @see http://wiki.starling-framework.org/feathers/text-editors
 	 * @see flash.text.StageText
@@ -134,10 +252,27 @@ package feathers.controls.text
 		/**
 		 * @private
 		 */
+		protected var _needsNewTexture:Boolean = false;
+
+		/**
+		 * @private
+		 */
+		protected var _ignoreStageTextChanges:Boolean = false;
+
+		/**
+		 * @private
+		 */
 		protected var _text:String = "";
 
 		/**
 		 * The text displayed by the input.
+		 *
+		 * <p>In the following example, the text is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.text = "Lorem ipsum";</listing>
+		 *
+		 * @default ""
 		 */
 		public function get text():String
 		{
@@ -195,28 +330,18 @@ package feathers.controls.text
 
 		/**
 		 * @private
-		 * Stores the snapshot of the StageText to display when the StageText
-		 * isn't visible.
-		 */
-		protected var textSnapshotBitmapData:BitmapData;
-
-		/**
-		 * @private
-		 */
-		protected var _oldGlobalX:Number = 0;
-
-		/**
-		 * @private
-		 */
-		protected var _oldGlobalY:Number = 0;
-
-		/**
-		 * @private
 		 */
 		protected var _autoCapitalize:String = "none";
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the auto capitalize behavior is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.autoCapitalize = AutoCapitalize.WORD;</listing>
+		 *
+		 * @default flash.text.AutoCapitalize.NONE
 		 */
 		public function get autoCapitalize():String
 		{
@@ -243,6 +368,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, auto correct is enabled:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.autoCorrect = true;</listing>
+		 *
+		 * @default false
 		 */
 		public function get autoCorrect():Boolean
 		{
@@ -269,6 +401,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the text color is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.color = 0xff9900;</listing>
+		 *
+		 * @default 0x000000
 		 */
 		public function get color():uint
 		{
@@ -295,6 +434,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the text is displayed as a password:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.displayAsPassword = true;</listing>
+		 *
+		 * @default false
 		 */
 		public function get displayAsPassword():Boolean
 		{
@@ -317,27 +463,45 @@ package feathers.controls.text
 		/**
 		 * @private
 		 */
-		protected var _editable:Boolean = true;
+		protected var _isEditable:Boolean = true;
 
 		/**
-		 * Same as the <code>StageText</code> property with the same name.
+		 * Determines if the text input is editable. If the text input is not
+		 * editable, it will still appear enabled.
+		 *
+		 * <p>In the following example, the text is not editable:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.isEditable = false;</listing>
+		 *
+		 * @default true
 		 */
-		public function get editable():Boolean
+		public function get isEditable():Boolean
 		{
-			return this._editable;
+			return this._isEditable;
 		}
 
 		/**
 		 * @private
 		 */
-		public function set editable(value:Boolean):void
+		public function set isEditable(value:Boolean):void
 		{
-			if(this._editable == value)
+			if(this._isEditable == value)
 			{
 				return;
 			}
-			this._editable = value;
+			this._isEditable = value;
 			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @inheritDoc
+		 *
+		 * @default true
+		 */
+		public function get setTouchFocusOnEndedPhase():Boolean
+		{
+			return true;
 		}
 
 		/**
@@ -347,6 +511,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the font family is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.fontFamily = "Source Sans Pro";</listing>
+		 *
+		 * @default null
 		 */
 		public function get fontFamily():String
 		{
@@ -373,6 +544,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the font posture is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.fontPosture = FontPosture.ITALIC;</listing>
+		 *
+		 * @default flash.text.engine.FontPosture.NORMAL
 		 */
 		public function get fontPosture():String
 		{
@@ -399,6 +577,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the font size is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.fontSize = 16;</listing>
+		 *
+		 * @default 12
 		 */
 		public function get fontSize():int
 		{
@@ -425,6 +610,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the font weight is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.fontWeight = FontWeight.BOLD;</listing>
+		 *
+		 * @default flash.text.engine.FontWeight.NORMAL
 		 */
 		public function get fontWeight():String
 		{
@@ -451,6 +643,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the locale is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.locale = "ru";</listing>
+		 *
+		 * @default "en"
 		 */
 		public function get locale():String
 		{
@@ -473,10 +672,17 @@ package feathers.controls.text
 		/**
 		 * @private
 		 */
-		protected var _maxChars:int = int.MAX_VALUE;
+		protected var _maxChars:int = 0;
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the maximum character count is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.maxChars = 10;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get maxChars():int
 		{
@@ -499,10 +705,58 @@ package feathers.controls.text
 		/**
 		 * @private
 		 */
+		protected var _multiline:Boolean = false;
+
+		/**
+		 * Same as the <code>StageText</code> property with the same name,
+		 * except it is configurable after the text renderer is created. The
+		 * <code>StageText</code> instance will be disposed and recreated when
+		 * this property changes after the <code>StageText</code> text was
+		 * initially created.
+		 *
+		 * <p>In the following example, multiline is enabled:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.multiline = true;</listing>
+		 *
+		 * When setting this property to <code>true</code>, it is recommended
+		 * that the text input's <code>verticalAlign</code> property is set to
+		 * <code>TextInput.VERTICAL_ALIGN_JUSTIFY</code>.
+		 *
+		 * @default false
+		 */
+		public function get multiline():Boolean
+		{
+			return this._multiline;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set multiline(value:Boolean):void
+		{
+			if(this._multiline == value)
+			{
+				return;
+			}
+			this._multiline = value;
+			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _restrict:String;
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the text is restricted to numbers:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.restrict = "0-9";</listing>
+		 *
+		 * @default null
 		 */
 		public function get restrict():String
 		{
@@ -529,6 +783,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the return key label is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.returnKeyLabel = ReturnKeyLabel.GO;</listing>
+		 *
+		 * @default flash.text.ReturnKeyLabel.DEFAULT
 		 */
 		public function get returnKeyLabel():String
 		{
@@ -555,6 +816,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the soft keyboard type is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.softKeyboardType = SoftKeyboardType.NUMBER;</listing>
+		 *
+		 * @default flash.text.SoftKeyboardType.DEFAULT
 		 */
 		public function get softKeyboardType():String
 		{
@@ -581,6 +849,13 @@ package feathers.controls.text
 
 		/**
 		 * Same as the <code>StageText</code> property with the same name.
+		 *
+		 * <p>In the following example, the text is centered:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.textAlign = TextFormatAlign.CENTER;</listing>
+		 *
+		 * @default flash.text.TextFormatAlign.START
 		 */
 		public function get textAlign():String
 		{
@@ -605,23 +880,7 @@ package feathers.controls.text
 		 */
 		override public function dispose():void
 		{
-			if(this.textSnapshotBitmapData)
-			{
-				this.textSnapshotBitmapData.dispose();
-				this.textSnapshotBitmapData = null;
-			}
-
-			if(this.stageText)
-			{
-				this.disposeStageText();
-			}
-
-			if(this._measureTextField)
-			{
-				Starling.current.nativeStage.removeChild(this._measureTextField);
-				this._measureTextField = null;
-			}
-
+			this.disposeContent();
 			super.dispose();
 		}
 
@@ -633,19 +892,35 @@ package feathers.controls.text
 			HELPER_POINT.x = HELPER_POINT.y = 0;
 			this.getTransformationMatrix(this.stage, HELPER_MATRIX);
 			MatrixUtil.transformCoords(HELPER_MATRIX, 0, 0, HELPER_POINT);
-			if(HELPER_POINT.x != this._oldGlobalX || HELPER_POINT.y != this._oldGlobalY)
+			const starlingViewPort:Rectangle = Starling.current.viewPort;
+			var stageTextViewPort:Rectangle = this.stageText.viewPort;
+			if(!stageTextViewPort)
 			{
-				this._oldGlobalX = HELPER_POINT.x;
-				this._oldGlobalY = HELPER_POINT.y;
-				const starlingViewPort:Rectangle = Starling.current.viewPort;
-				var stageTextViewPort:Rectangle = this.stageText.viewPort;
-				if(!stageTextViewPort)
+				stageTextViewPort = new Rectangle();
+			}
+			var nativeScaleFactor:Number = 1;
+			if(Starling.current.supportHighResolutions)
+			{
+				nativeScaleFactor = Starling.current.nativeStage.contentsScaleFactor;
+			}
+			var scaleFactor:Number = Starling.contentScaleFactor / nativeScaleFactor;
+			stageTextViewPort.x = Math.round(starlingViewPort.x + (HELPER_POINT.x * scaleFactor));
+			stageTextViewPort.y = Math.round(starlingViewPort.y + (HELPER_POINT.y * scaleFactor));
+			this.stageText.viewPort = stageTextViewPort;
+
+			if(this.stageText.visible)
+			{
+				this.getTransformationMatrix(this.stage, HELPER_MATRIX);
+				var globalScaleX:Number = matrixToScaleX(HELPER_MATRIX);
+				var globalScaleY:Number = matrixToScaleY(HELPER_MATRIX);
+				var smallerGlobalScale:Number = globalScaleX;
+				if(globalScaleY < globalScaleX)
 				{
-					stageTextViewPort = new Rectangle();
+					smallerGlobalScale = globalScaleY;
 				}
-				stageTextViewPort.x = Math.round(starlingViewPort.x + (HELPER_POINT.x * Starling.contentScaleFactor));
-				stageTextViewPort.y = Math.round(starlingViewPort.y + (HELPER_POINT.y * Starling.contentScaleFactor));
-				this.stageText.viewPort = stageTextViewPort;
+				//for some reason, we don't need to account for the native scale factor here
+				scaleFactor = Starling.contentScaleFactor;
+				this.stageText.fontSize = this._fontSize * scaleFactor * smallerGlobalScale;
 			}
 
 			if(this.textSnapshot)
@@ -654,11 +929,6 @@ package feathers.controls.text
 				this.textSnapshot.y = Math.round(HELPER_MATRIX.ty) - HELPER_MATRIX.ty;
 			}
 
-			//theoretically, this will ensure that the StageText is set visible
-			//or invisible immediately after the snapshot changes visibility in
-			//the rendered graphics. the OS might take longer to do the change,
-			//though.
-			this.stageText.visible = this.textSnapshot ? !this.textSnapshot.visible : this._stageTextHasFocus;
 			super.render(support, parentAlpha);
 		}
 
@@ -671,17 +941,48 @@ package feathers.controls.text
 			{
 				if(position)
 				{
-					if(position.x < 0)
+					const positionX:Number = position.x;
+					const positionY:Number = position.y;
+					if(positionX < 0)
 					{
 						this._pendingSelectionStartIndex = this._pendingSelectionEndIndex = 0;
 					}
 					else
 					{
-						this._pendingSelectionStartIndex = this._measureTextField.getCharIndexAtPoint(position.x, position.y);
-						const bounds:Rectangle = this._measureTextField.getCharBoundaries(this._pendingSelectionStartIndex);
-						if(bounds && (bounds.x + bounds.width - position.x) < (position.x - bounds.x))
+						this._pendingSelectionStartIndex = this._measureTextField.getCharIndexAtPoint(positionX, positionY);
+						if(this._pendingSelectionStartIndex < 0)
 						{
-							this._pendingSelectionStartIndex++;
+							if(this._multiline)
+							{
+								const lineIndex:int = int(positionY / this._measureTextField.getLineMetrics(0).height);
+								try
+								{
+									this._pendingSelectionStartIndex = this._measureTextField.getLineOffset(lineIndex) + this._measureTextField.getLineLength(lineIndex);
+									if(this._pendingSelectionStartIndex != this._text.length)
+									{
+										this._pendingSelectionStartIndex--;
+									}
+								}
+								catch(error:Error)
+								{
+									//we may be checking for a line beyond the
+									//end that doesn't exist
+									this._pendingSelectionStartIndex = this._text.length;
+								}
+							}
+							else
+							{
+								this._pendingSelectionStartIndex = this._text.length;
+							}
+						}
+						else
+						{
+							const bounds:Rectangle = this._measureTextField.getCharBoundaries(this._pendingSelectionStartIndex);
+							const boundsX:Number = bounds.x;
+							if(bounds && (boundsX + bounds.width - positionX) < (positionX - boundsX))
+							{
+								this._pendingSelectionStartIndex++;
+							}
 						}
 						this._pendingSelectionEndIndex = this._pendingSelectionStartIndex;
 					}
@@ -690,6 +991,7 @@ package feathers.controls.text
 				{
 					this._pendingSelectionStartIndex = this._pendingSelectionEndIndex = -1;
 				}
+				this.stageText.visible = true;
 				this.stageText.assignFocus();
 			}
 			else
@@ -754,7 +1056,14 @@ package feathers.controls.text
 				return result;
 			}
 
-			this.commit();
+
+			const stylesInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_STYLES);
+			const dataInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_DATA);
+
+			if(stylesInvalid || dataInvalid)
+			{
+				this.refreshMeasureProperties();
+			}
 
 			result = this.measure(result);
 
@@ -784,6 +1093,13 @@ package feathers.controls.text
 			const stylesInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_STYLES);
 			const dataInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_DATA);
 
+			if(stylesInvalid || dataInvalid)
+			{
+				this.refreshMeasureProperties();
+			}
+
+			const oldIgnoreStageTextChanges:Boolean = this._ignoreStageTextChanges;
+			this._ignoreStageTextChanges = true;
 			if(stylesInvalid)
 			{
 				this.refreshStageTextProperties();
@@ -800,12 +1116,12 @@ package feathers.controls.text
 					}
 					this.stageText.text = this._text;
 				}
-				this._measureTextField.text = this.stageText.text;
 			}
+			this._ignoreStageTextChanges = oldIgnoreStageTextChanges;
 
-			if(stateInvalid)
+			if(stylesInvalid || stateInvalid)
 			{
-				this.stageText.editable = this._isEnabled;
+				this.stageText.editable = this._isEditable && this._isEnabled;
 			}
 		}
 
@@ -864,29 +1180,44 @@ package feathers.controls.text
 			if(positionInvalid || sizeInvalid || stylesInvalid || skinInvalid || stateInvalid)
 			{
 				this.refreshViewPort();
+				const viewPort:Rectangle = this.stageText.viewPort;
+				const textureRoot:ConcreteTexture = this.textSnapshot ? this.textSnapshot.texture.root : null;
+				this._needsNewTexture = this._needsNewTexture || !this.textSnapshot || viewPort.width != textureRoot.width || viewPort.height != textureRoot.height;
 			}
 
-			if(stylesInvalid || dataInvalid || sizeInvalid)
+			if(!this._stageTextHasFocus && (stylesInvalid || dataInvalid || sizeInvalid || this._needsNewTexture))
 			{
-				if(!this._stageTextHasFocus)
+				const hasText:Boolean = this._text.length > 0;
+				if(hasText)
 				{
-					const hasText:Boolean = this._text.length > 0;
-					if(hasText)
-					{
-						this.refreshSnapshot(sizeInvalid || !this.textSnapshotBitmapData);
-					}
-					if(this.textSnapshot)
-					{
-						this.textSnapshot.visible = hasText;
-					}
+					this.refreshSnapshot();
 				}
+				if(this.textSnapshot)
+				{
+					this.textSnapshot.visible = !this._stageTextHasFocus;
+					this.textSnapshot.alpha = hasText ? 1 : 0;
+				}
+				this.stageText.visible = false;
 			}
 
 			this.doPendingActions();
 		}
 
 		/**
-		 * @private
+		 * If the component's dimensions have not been set explicitly, it will
+		 * measure its content and determine an ideal size for itself. If the
+		 * <code>explicitWidth</code> or <code>explicitHeight</code> member
+		 * variables are set, those value will be used without additional
+		 * measurement. If one is set, but not the other, the dimension with the
+		 * explicit value will not be measured, but the other non-explicit
+		 * dimension will still need measurement.
+		 *
+		 * <p>Calls <code>setSizeInternal()</code> to set up the
+		 * <code>actualWidth</code> and <code>actualHeight</code> member
+		 * variables used for layout.</p>
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
 		 */
 		protected function autoSizeIfNeeded():Boolean
 		{
@@ -904,27 +1235,12 @@ package feathers.controls.text
 		/**
 		 * @private
 		 */
-		protected function refreshStageTextProperties():void
+		protected function refreshMeasureProperties():void
 		{
-			this.stageText.autoCapitalize = this._autoCapitalize;
-			this.stageText.autoCorrect = this._autoCorrect;
-			this.stageText.color = this._color;
-			this.stageText.displayAsPassword = this._displayAsPassword;
-			this.stageText.editable = this._editable;
-			this.stageText.fontFamily = this._fontFamily;
-			this.stageText.fontPosture = this._fontPosture;
-			this.stageText.fontSize = this._fontSize * Starling.contentScaleFactor;
-			this.stageText.fontWeight = this._fontWeight;
-			this.stageText.locale = this._locale;
-			this.stageText.maxChars = this._maxChars;
-			this.stageText.restrict = this._restrict;
-			this.stageText.returnKeyLabel = this._returnKeyLabel;
-			this.stageText.softKeyboardType = this._softKeyboardType;
-			this.stageText.textAlign = this._textAlign;
-
 			this._measureTextField.displayAsPassword = this._displayAsPassword;
 			this._measureTextField.maxChars = this._maxChars;
 			this._measureTextField.restrict = this._restrict;
+			this._measureTextField.multiline = this._measureTextField.wordWrap = this._multiline;
 
 			const format:TextFormat = this._measureTextField.defaultTextFormat;
 			format.color = this._color;
@@ -944,6 +1260,56 @@ package feathers.controls.text
 			format.align = alignValue;
 			this._measureTextField.defaultTextFormat = format;
 			this._measureTextField.setTextFormat(format);
+			if(this._text.length == 0)
+			{
+				this._measureTextField.text = " ";
+			}
+			else
+			{
+				this._measureTextField.text = this._text;
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function refreshStageTextProperties():void
+		{
+			if(this.stageText.multiline != this._multiline)
+			{
+				if(this.stageText)
+				{
+					this.disposeStageText();
+				}
+				this.createStageText();
+			}
+
+			this.stageText.autoCapitalize = this._autoCapitalize;
+			this.stageText.autoCorrect = this._autoCorrect;
+			this.stageText.color = this._color;
+			this.stageText.displayAsPassword = this._displayAsPassword;
+			this.stageText.fontFamily = this._fontFamily;
+			this.stageText.fontPosture = this._fontPosture;
+
+			this.getTransformationMatrix(this.stage, HELPER_MATRIX);
+			var globalScaleX:Number = matrixToScaleX(HELPER_MATRIX);
+			var globalScaleY:Number = matrixToScaleY(HELPER_MATRIX);
+			var smallerGlobalScale:Number = globalScaleX;
+			if(globalScaleY < globalScaleX)
+			{
+				smallerGlobalScale = globalScaleY;
+			}
+			//for some reason, we don't need to account for the native scale factor here
+			var scaleFactor:Number = Starling.contentScaleFactor;
+			this.stageText.fontSize = this._fontSize * scaleFactor * smallerGlobalScale;
+
+			this.stageText.fontWeight = this._fontWeight;
+			this.stageText.locale = this._locale;
+			this.stageText.maxChars = this._maxChars;
+			this.stageText.restrict = this._restrict;
+			this.stageText.returnKeyLabel = this._returnKeyLabel;
+			this.stageText.softKeyboardType = this._softKeyboardType;
+			this.stageText.textAlign = this._textAlign;
 		}
 
 		/**
@@ -969,60 +1335,67 @@ package feathers.controls.text
 		/**
 		 * @private
 		 */
-		protected function refreshSnapshot(needsNewBitmap:Boolean):void
+		protected function texture_onRestore():void
 		{
-			if(needsNewBitmap)
+			this.refreshSnapshot();
+			if(this.textSnapshot)
 			{
-				const viewPort:Rectangle = this.stageText.viewPort;
-				if(viewPort.width == 0 || viewPort.height == 0)
-				{
-					return;
-				}
-				if(!this.textSnapshotBitmapData || this.textSnapshotBitmapData.width != viewPort.width || this.textSnapshotBitmapData.height != viewPort.height)
-				{
-					if(this.textSnapshotBitmapData)
-					{
-						this.textSnapshotBitmapData.dispose();
-					}
-					this.textSnapshotBitmapData = new BitmapData(viewPort.width, viewPort.height, true, 0x00ff00ff);
-				}
+				this.textSnapshot.visible = !this._stageTextHasFocus;
+				this.textSnapshot.alpha = this._text.length > 0 ? 1 : 0;
 			}
+			if(!this._stageTextHasFocus)
+			{
+				this.stageText.visible = false;
+			}
+		}
 
-			if(!this.textSnapshotBitmapData)
+		/**
+		 * @private
+		 */
+		protected function refreshSnapshot():void
+		{
+			const viewPort:Rectangle = this.stageText.viewPort;
+			if(viewPort.width == 0 || viewPort.height == 0)
 			{
 				return;
 			}
-			this.textSnapshotBitmapData.fillRect(this.textSnapshotBitmapData.rect, 0x00ff00ff);
-			this.stageText.drawViewPortToBitmapData(this.textSnapshotBitmapData);
+
+			//StageText sucks because it requires that the BitmapData's width
+			//and height exactly match its view port width and height.
+			var bitmapData:BitmapData = new BitmapData(viewPort.width, viewPort.height, true, 0x00ff00ff);
+			this.stageText.drawViewPortToBitmapData(bitmapData);
+
+			var newTexture:Texture;
+			if(!this.textSnapshot || this._needsNewTexture)
+			{
+				newTexture = Texture.fromBitmapData(bitmapData, false, false, Starling.contentScaleFactor);
+				newTexture.root.onRestore = texture_onRestore;
+			}
 			if(!this.textSnapshot)
 			{
-				this.textSnapshot = new Image(starling.textures.Texture.fromBitmapData(this.textSnapshotBitmapData, false, false, Starling.contentScaleFactor));
+				this.textSnapshot = new Image(newTexture);
 				this.addChild(this.textSnapshot);
 			}
 			else
 			{
-				if(needsNewBitmap)
+				if(this._needsNewTexture)
 				{
 					this.textSnapshot.texture.dispose();
-					this.textSnapshot.texture = starling.textures.Texture.fromBitmapData(this.textSnapshotBitmapData, false, false, Starling.contentScaleFactor);
+					this.textSnapshot.texture = newTexture;
 					this.textSnapshot.readjustSize();
 				}
 				else
 				{
-					//this is faster, so use it if we haven't resized the
-					//bitmapdata
-					const texture:starling.textures.Texture = this.textSnapshot.texture;
-					if(Starling.handleLostContext && texture is ConcreteTexture)
-					{
-						ConcreteTexture(texture).restoreOnLostContext(this.textSnapshotBitmapData);
-					}
-					flash.display3D.textures.Texture(texture.base).uploadFromBitmapData(this.textSnapshotBitmapData);
+					//this is faster, if we haven't resized the bitmapdata
+					const existingTexture:Texture = this.textSnapshot.texture;
+					existingTexture.root.uploadBitmapData(bitmapData);
 				}
 			}
-
 			this.getTransformationMatrix(this.stage, HELPER_MATRIX);
-			this.textSnapshot.x = Math.round(HELPER_MATRIX.tx) - HELPER_MATRIX.tx;
-			this.textSnapshot.y = Math.round(HELPER_MATRIX.ty) - HELPER_MATRIX.ty;
+			this.textSnapshot.scaleX = 1 / matrixToScaleX(HELPER_MATRIX);
+			this.textSnapshot.scaleY = 1 / matrixToScaleY(HELPER_MATRIX);
+			bitmapData.dispose();
+			this._needsNewTexture = false;
 		}
 
 		/**
@@ -1043,19 +1416,59 @@ package feathers.controls.text
 
 			HELPER_POINT.x = HELPER_POINT.y = 0;
 			this.getTransformationMatrix(this.stage, HELPER_MATRIX);
+			var globalScaleX:Number = matrixToScaleX(HELPER_MATRIX);
+			var globalScaleY:Number = matrixToScaleY(HELPER_MATRIX);
 			MatrixUtil.transformCoords(HELPER_MATRIX, 0, 0, HELPER_POINT);
-			this._oldGlobalX = HELPER_POINT.x;
-			this._oldGlobalY = HELPER_POINT.y;
-			stageTextViewPort.x = Math.round(starlingViewPort.x + HELPER_POINT.x * Starling.contentScaleFactor);
-			stageTextViewPort.y = Math.round(starlingViewPort.y + HELPER_POINT.y * Starling.contentScaleFactor);
-			stageTextViewPort.width = Math.round(Math.max(1, this.actualWidth * Starling.contentScaleFactor * this.scaleX));
-			stageTextViewPort.height = Math.round(Math.max(1, this.actualHeight * Starling.contentScaleFactor * this.scaleY));
-			if(isNaN(stageTextViewPort.width) || isNaN(stageTextViewPort.height))
+			var nativeScaleFactor:Number = 1;
+			if(Starling.current.supportHighResolutions)
 			{
-				stageTextViewPort.width = 1;
-				stageTextViewPort.height = 1;
+				nativeScaleFactor = Starling.current.nativeStage.contentsScaleFactor;
 			}
+			var scaleFactor:Number = Starling.contentScaleFactor / nativeScaleFactor;
+			stageTextViewPort.x = Math.round(starlingViewPort.x + HELPER_POINT.x * scaleFactor);
+			stageTextViewPort.y = Math.round(starlingViewPort.y + HELPER_POINT.y * scaleFactor);
+			var viewPortWidth:Number = Math.round(this.actualWidth * scaleFactor * globalScaleX);
+			if(viewPortWidth < 1 || isNaN(viewPortWidth))
+			{
+				viewPortWidth = 1;
+			}
+			var viewPortHeight:Number = Math.round(this.actualHeight * scaleFactor * globalScaleY);
+			if(viewPortHeight < 1 || isNaN(viewPortHeight))
+			{
+				viewPortHeight = 1;
+			}
+			stageTextViewPort.width = viewPortWidth;
+			stageTextViewPort.height = viewPortHeight;
 			this.stageText.viewPort = stageTextViewPort;
+
+			this._measureTextField.width = this.actualWidth;
+			this._measureTextField.height = this.actualHeight;
+		}
+
+		/**
+		 * @private
+		 */
+		protected function disposeContent():void
+		{
+			if(this._measureTextField)
+			{
+				Starling.current.nativeStage.removeChild(this._measureTextField);
+				this._measureTextField = null;
+			}
+
+			if(this.stageText)
+			{
+				this.disposeStageText();
+			}
+
+			if(this.textSnapshot)
+			{
+				//avoid the need to call dispose(). we'll create a new snapshot
+				//when the renderer is added to stage again.
+				this.textSnapshot.texture.dispose();
+				this.removeChild(this.textSnapshot, true);
+				this.textSnapshot = null;
+			}
 		}
 
 		/**
@@ -1063,14 +1476,56 @@ package feathers.controls.text
 		 */
 		protected function disposeStageText():void
 		{
+			if(!this.stageText)
+			{
+				return;
+			}
 			this.stageText.removeEventListener(flash.events.Event.CHANGE, stageText_changeHandler);
 			this.stageText.removeEventListener(KeyboardEvent.KEY_DOWN, stageText_keyDownHandler);
+			this.stageText.removeEventListener(KeyboardEvent.KEY_UP, stageText_keyUpHandler);
 			this.stageText.removeEventListener(FocusEvent.FOCUS_IN, stageText_focusInHandler);
 			this.stageText.removeEventListener(FocusEvent.FOCUS_OUT, stageText_focusOutHandler);
 			this.stageText.removeEventListener(flash.events.Event.COMPLETE, stageText_completeHandler);
+			this.stageText.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, stageText_softKeyboardActivateHandler);
+			this.stageText.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, stageText_softKeyboardDeactivateHandler);
 			this.stageText.stage = null;
 			this.stageText.dispose();
 			this.stageText = null;
+		}
+
+		/**
+		 * Creates and adds the <code>stageText</code> instance.
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
+		 */
+		protected function createStageText():void
+		{
+			this._stageTextIsComplete = false;
+			var StageTextType:Class;
+			var initOptions:Object;
+			try
+			{
+				StageTextType = Class(getDefinitionByName("flash.text.StageText"));
+				const StageTextInitOptionsType:Class = Class(getDefinitionByName("flash.text.StageTextInitOptions"));
+				initOptions = new StageTextInitOptionsType(this._multiline);
+			}
+			catch(error:Error)
+			{
+				StageTextType = StageTextField;
+				initOptions = { multiline: this._multiline };
+			}
+			this.stageText = new StageTextType(initOptions);
+			this.stageText.visible = false;
+			this.stageText.addEventListener(flash.events.Event.CHANGE, stageText_changeHandler);
+			this.stageText.addEventListener(KeyboardEvent.KEY_DOWN, stageText_keyDownHandler);
+			this.stageText.addEventListener(KeyboardEvent.KEY_UP, stageText_keyUpHandler);
+			this.stageText.addEventListener(FocusEvent.FOCUS_IN, stageText_focusInHandler);
+			this.stageText.addEventListener(FocusEvent.FOCUS_OUT, stageText_focusOutHandler);
+			this.stageText.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, stageText_softKeyboardActivateHandler);
+			this.stageText.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, stageText_softKeyboardDeactivateHandler);
+			this.stageText.addEventListener(flash.events.Event.COMPLETE, stageText_completeHandler);
+			this.invalidate();
 		}
 
 		/**
@@ -1095,28 +1550,7 @@ package feathers.controls.text
 				Starling.current.nativeStage.addChild(this._measureTextField);
 			}
 
-			this._stageTextIsComplete = false;
-			var StageTextType:Class;
-			var initOptions:Object;
-			try
-			{
-				StageTextType = Class(getDefinitionByName("flash.text.StageText"));
-				const StageTextInitOptionsType:Class = Class(getDefinitionByName("flash.text.StageTextInitOptions"));
-				initOptions = new StageTextInitOptionsType(false);
-			}
-			catch(error:Error)
-			{
-				StageTextType = StageTextField;
-				initOptions = { multiline: false };
-			}
-			this.stageText = new StageTextType(initOptions);
-			this.stageText.visible = false;
-			this.stageText.addEventListener(flash.events.Event.CHANGE, stageText_changeHandler);
-			this.stageText.addEventListener(KeyboardEvent.KEY_DOWN, stageText_keyDownHandler);
-			this.stageText.addEventListener(FocusEvent.FOCUS_IN, stageText_focusInHandler);
-			this.stageText.addEventListener(FocusEvent.FOCUS_OUT, stageText_focusOutHandler);
-			this.stageText.addEventListener(flash.events.Event.COMPLETE, stageText_completeHandler);
-			this.invalidate();
+			this.createStageText();
 		}
 
 		/**
@@ -1124,10 +1558,7 @@ package feathers.controls.text
 		 */
 		protected function removedFromStageHandler(event:starling.events.Event):void
 		{
-			Starling.current.nativeStage.removeChild(this._measureTextField);
-			this._measureTextField = null;
-
-			this.disposeStageText();
+			this.disposeContent();
 		}
 
 		/**
@@ -1135,6 +1566,10 @@ package feathers.controls.text
 		 */
 		protected function stageText_changeHandler(event:flash.events.Event):void
 		{
+			if(this._ignoreStageTextChanges)
+			{
+				return;
+			}
 			this.text = this.stageText.text;
 		}
 
@@ -1185,8 +1620,9 @@ package feathers.controls.text
 		 */
 		protected function stageText_keyDownHandler(event:KeyboardEvent):void
 		{
-			if(event.keyCode == Keyboard.ENTER)
+			if(!this._multiline && (event.keyCode == Keyboard.ENTER || event.keyCode == Keyboard.NEXT))
 			{
+				event.preventDefault();
 				this.dispatchEventWith(FeathersEventType.ENTER);
 			}
 			else if(event.keyCode == Keyboard.BACK)
@@ -1197,6 +1633,33 @@ package feathers.controls.text
 				event.preventDefault();
 				Starling.current.nativeStage.focus = Starling.current.nativeStage;
 			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function stageText_keyUpHandler(event:KeyboardEvent):void
+		{
+			if(!this._multiline && (event.keyCode == Keyboard.ENTER || event.keyCode == Keyboard.NEXT))
+			{
+				event.preventDefault();
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function stageText_softKeyboardActivateHandler(event:SoftKeyboardEvent):void
+		{
+			this.dispatchEventWith(FeathersEventType.SOFT_KEYBOARD_ACTIVATE, true);
+		}
+
+		/**
+		 * @private
+		 */
+		protected function stageText_softKeyboardDeactivateHandler(event:SoftKeyboardEvent):void
+		{
+			this.dispatchEventWith(FeathersEventType.SOFT_KEYBOARD_DEACTIVATE, true);
 		}
 	}
 }

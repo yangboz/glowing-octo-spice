@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -14,6 +14,20 @@ package feathers.controls
 	/**
 	 * Data for an individual screen that will be used by a <code>ScreenNavigator</code>
 	 * object.
+	 *
+	 * <p>The following example creates a new screen navigator item that
+	 * navigates to a "main menu" screen on <code>Event.COMPLETE</code> and
+	 * sets the <code>settings</code> property when the screen is displayed:</p>
+	 *
+	 * <listing version="3.0">
+	 * var item:ScreenNavigatorItem = new ScreenNavigatorItem( SettingsScreen,
+	 * {
+	 *     complete: MAIN_MENU_SCREEN_ID
+	 * },
+	 * {
+	 *     settings: settingsData
+	 * });
+	 * navigator.addScreen( SETTINGS_SCREEN_ID, item );</listing>
 	 *
 	 * @see http://wiki.starling-framework.org/feathers/screen-navigator
 	 * @see feathers.controls.ScreenNavigator
@@ -33,6 +47,8 @@ package feathers.controls
 		/**
 		 * A Starling DisplayObject, a Class that may be instantiated to create
 		 * a DisplayObject, or a Function that returns a DisplayObject.
+		 *
+		 * @default null
 		 */
 		public var screen:Object;
 		
@@ -44,11 +60,15 @@ package feathers.controls
 		 * <code>ScreenNavigator</code> to display. If the value is a
 		 * <code>Function</code>, it must be a listener for the screen's event
 		 * or <code>ISignal</code>.
+		 *
+		 * @default null
 		 */
 		public var events:Object;
 		
 		/**
 		 * A hash of properties to set on the screen.
+		 *
+		 * @default null
 		 */
 		public var properties:Object;
 		

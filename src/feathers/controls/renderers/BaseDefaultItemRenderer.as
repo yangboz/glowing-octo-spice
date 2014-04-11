@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -9,10 +9,12 @@ package feathers.controls.renderers
 {
 	import feathers.controls.Button;
 	import feathers.controls.ImageLoader;
+	import feathers.controls.Scroller;
 	import feathers.controls.text.BitmapFontTextRenderer;
 	import feathers.core.FeathersControl;
 	import feathers.core.IFeathersControl;
 	import feathers.core.ITextRenderer;
+	import feathers.core.IValidating;
 	import feathers.core.PropertyProxy;
 	import feathers.events.FeathersEventType;
 
@@ -22,8 +24,9 @@ package feathers.controls.renderers
 
 	import starling.display.DisplayObject;
 	import starling.events.Event;
+	import starling.events.Touch;
 	import starling.events.TouchEvent;
-	import starling.textures.Texture;
+	import starling.events.TouchPhase;
 
 	/**
 	 * An abstract class for item renderer implementations.
@@ -31,12 +34,113 @@ package feathers.controls.renderers
 	public class BaseDefaultItemRenderer extends Button
 	{
 		/**
+		 * The default value added to the <code>nameList</code> of the icon
+		 * label, if it exists.
+		 *
+		 * @see feathers.core.IFeathersControl#nameList
+		 */
+		public static const DEFAULT_CHILD_NAME_ICON_LABEL:String = "feathers-item-renderer-icon-label";
+
+		/**
 		 * The default value added to the <code>nameList</code> of the accessory
-		 * label.
+		 * label, if it exists.
 		 *
 		 * @see feathers.core.IFeathersControl#nameList
 		 */
 		public static const DEFAULT_CHILD_NAME_ACCESSORY_LABEL:String = "feathers-item-renderer-accessory-label";
+
+		/**
+		 * @copy feathers.controls.Button#ICON_POSITION_TOP
+		 *
+		 * @see feathers.controls.Button#iconPosition
+		 */
+		public static const ICON_POSITION_TOP:String = "top";
+
+		/**
+		 * @copy feathers.controls.Button#ICON_POSITION_RIGHT
+		 *
+		 * @see feathers.controls.Button#iconPosition
+		 */
+		public static const ICON_POSITION_RIGHT:String = "right";
+
+		/**
+		 * @copy feathers.controls.Button#ICON_POSITION_BOTTOM
+		 *
+		 * @see feathers.controls.Button#iconPosition
+		 */
+		public static const ICON_POSITION_BOTTOM:String = "bottom";
+
+		/**
+		 * @copy feathers.controls.Button#ICON_POSITION_LEFT
+		 *
+		 * @see feathers.controls.Button#iconPosition
+		 */
+		public static const ICON_POSITION_LEFT:String = "left";
+
+		/**
+		 * @copy feathers.controls.Button#ICON_POSITION_MANUAL
+		 *
+		 * @see feathers.controls.Button#iconPosition
+		 * @see feathers.controls.Button#iconOffsetX
+		 * @see feathers.controls.Button#iconOffsetY
+		 */
+		public static const ICON_POSITION_MANUAL:String = "manual";
+
+		/**
+		 * @copy feathers.controls.Button#ICON_POSITION_LEFT_BASELINE
+		 *
+		 * @see feathers.controls.Button#iconPosition
+		 */
+		public static const ICON_POSITION_LEFT_BASELINE:String = "leftBaseline";
+
+		/**
+		 * @copy feathers.controls.Button#ICON_POSITION_RIGHT_BASELINE
+		 *
+		 * @see feathers.controls.Button#iconPosition
+		 */
+		public static const ICON_POSITION_RIGHT_BASELINE:String = "rightBaseline";
+
+		/**
+		 * @copy feathers.controls.Button#HORIZONTAL_ALIGN_LEFT
+		 *
+		 * @see feathers.controls.Button#horizontalAlign
+		 */
+		public static const HORIZONTAL_ALIGN_LEFT:String = "left";
+
+		/**
+		 * @copy feathers.controls.Button#HORIZONTAL_ALIGN_CENTER
+		 *
+		 * @see feathers.controls.Button#horizontalAlign
+		 */
+		public static const HORIZONTAL_ALIGN_CENTER:String = "center";
+
+		/**
+		 * @copy feathers.controls.Button#HORIZONTAL_ALIGN_RIGHT
+		 *
+		 * @see feathers.controls.Button#horizontalAlign
+		 */
+		public static const HORIZONTAL_ALIGN_RIGHT:String = "right";
+
+		/**
+		 * @copy feathers.controls.Button#VERTICAL_ALIGN_TOP
+		 *
+		 * @see feathers.controls.Button#verticalAlign
+		 */
+		public static const VERTICAL_ALIGN_TOP:String = "top";
+
+		/**
+		 * @copy feathers.controls.Button#VERTICAL_ALIGN_MIDDLE
+		 *
+		 * @see feathers.controls.Button#verticalAlign
+		 */
+		public static const VERTICAL_ALIGN_MIDDLE:String = "middle";
+
+		/**
+		 * @copy feathers.controls.Button#VERTICAL_ALIGN_BOTTOM
+		 *
+		 * @see feathers.controls.Button#verticalAlign
+		 */
+		public static const VERTICAL_ALIGN_BOTTOM:String = "bottom";
 
 		/**
 		 * The accessory will be positioned above its origin.
@@ -122,12 +226,22 @@ package feathers.controls.renderers
 		public function BaseDefaultItemRenderer()
 		{
 			super();
+			this.isFocusEnabled = false;
 			this.isQuickHitAreaEnabled = false;
 			this.addEventListener(Event.TRIGGERED, itemRenderer_triggeredHandler);
 		}
 
 		/**
-		 * The value added to the <code>nameList</code> of the accessory label.
+		 * The value added to the <code>nameList</code> of the icon label, if it
+		 * exists.
+		 *
+		 * @see feathers.core.IFeathersControl#nameList
+		 */
+		protected var iconLabelName:String = DEFAULT_CHILD_NAME_ICON_LABEL;
+
+		/**
+		 * The value added to the <code>nameList</code> of the accessory label,
+		 * if it exists.
 		 *
 		 * @see feathers.core.IFeathersControl#nameList
 		 */
@@ -136,12 +250,22 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
-		protected var iconImage:ImageLoader;
+		protected var skinLoader:ImageLoader;
 
 		/**
 		 * @private
 		 */
-		protected var accessoryImage:ImageLoader;
+		protected var iconLoader:ImageLoader;
+
+		/**
+		 * @private
+		 */
+		protected var iconLabel:ITextRenderer;
+
+		/**
+		 * @private
+		 */
+		protected var accessoryLoader:ImageLoader;
 
 		/**
 		 * @private
@@ -156,10 +280,54 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
+		protected var _skinIsFromItem:Boolean = false;
+
+		/**
+		 * @private
+		 */
+		protected var _iconIsFromItem:Boolean = false;
+
+		/**
+		 * @private
+		 */
+		protected var _accessoryIsFromItem:Boolean = false;
+
+		/**
+		 * @private
+		 */
+		override public function set defaultIcon(value:DisplayObject):void
+		{
+			if(this._iconSelector.defaultValue == value)
+			{
+				return;
+			}
+			this.replaceIcon(null);
+			this._iconIsFromItem = false;
+			super.defaultIcon = value;
+		}
+
+		/**
+		 * @private
+		 */
+		override public function set defaultSkin(value:DisplayObject):void
+		{
+			if(this._skinSelector.defaultValue == value)
+			{
+				return;
+			}
+			this.replaceSkin(null);
+			this._skinIsFromItem = false;
+			super.defaultSkin = value;
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _data:Object;
 
 		/**
-		 * The item displayed by this renderer.
+		 * The item displayed by this renderer. This property is set by the
+		 * list, and should not be set manually.
 		 */
 		public function get data():Object
 		{
@@ -182,7 +350,7 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
-		protected var _owner:IFeathersControl;
+		protected var _owner:Scroller;
 
 		/**
 		 * @private
@@ -202,6 +370,13 @@ package feathers.controls.renderers
 		/**
 		 * If true, the down state (and subsequent state changes) will be
 		 * delayed to make scrolling look nicer.
+		 *
+		 * <p>In the following example, the state delay timer is disabled:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.useStateDelayTimer = false;</listing>
+		 *
+		 * @default true
 		 */
 		public function get useStateDelayTimer():Boolean
 		{
@@ -232,6 +407,13 @@ package feathers.controls.renderers
 		 * If true, the label will come from the renderer's item using the
 		 * appropriate field or function for the label. If false, the label may
 		 * be set externally.
+		 *
+		 * <p>In the following example, the item doesn't have a label:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasLabel = false;</listing>
+		 *
+		 * @default true
 		 */
 		public function get itemHasLabel():Boolean
 		{
@@ -243,7 +425,12 @@ package feathers.controls.renderers
 		 */
 		public function set itemHasLabel(value:Boolean):void
 		{
+			if(this._itemHasLabel == value)
+			{
+				return;
+			}
 			this._itemHasLabel = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
 		}
 
 		/**
@@ -255,6 +442,13 @@ package feathers.controls.renderers
 		 * If true, the icon will come from the renderer's item using the
 		 * appropriate field or function for the icon. If false, the icon may
 		 * be skinned for each state externally.
+		 *
+		 * <p>In the following example, the item doesn't have an icon:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasIcon = false;</listing>
+		 *
+		 * @default true
 		 */
 		public function get itemHasIcon():Boolean
 		{
@@ -266,7 +460,154 @@ package feathers.controls.renderers
 		 */
 		public function set itemHasIcon(value:Boolean):void
 		{
+			if(this._itemHasIcon == value)
+			{
+				return;
+			}
 			this._itemHasIcon = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _itemHasAccessory:Boolean = true;
+
+		/**
+		 * If true, the accessory will come from the renderer's item using the
+		 * appropriate field or function for the accessory. If false, the
+		 * accessory may be set using other means.
+		 *
+		 * <p>In the following example, the item doesn't have an accessory:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasAccessory = false;</listing>
+		 *
+		 * @default true
+		 */
+		public function get itemHasAccessory():Boolean
+		{
+			return this._itemHasAccessory;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set itemHasAccessory(value:Boolean):void
+		{
+			if(this._itemHasAccessory == value)
+			{
+				return;
+			}
+			this._itemHasAccessory = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _itemHasSkin:Boolean = false;
+
+		/**
+		 * If true, the skin will come from the renderer's item using the
+		 * appropriate field or function for the skin. If false, the skin may
+		 * be set for each state externally.
+		 *
+		 * <p>In the following example, the item has a skin:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasSkin = true;
+		 * renderer.skinField = "background";</listing>
+		 *
+		 * @default false
+		 */
+		public function get itemHasSkin():Boolean
+		{
+			return this._itemHasSkin;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set itemHasSkin(value:Boolean):void
+		{
+			if(this._itemHasSkin == value)
+			{
+				return;
+			}
+			this._itemHasSkin = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _itemHasSelectable:Boolean = false;
+
+		/**
+		 * If true, the ability to select the renderer will come from the
+		 * renderer's item using the appropriate field or function for
+		 * selectable. If false, the renderer will be selectable if its owner
+		 * is selectable.
+		 *
+		 * <p>In the following example, the item doesn't have an accessory:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasSelectable = true;</listing>
+		 *
+		 * @default false
+		 */
+		public function get itemHasSelectable():Boolean
+		{
+			return this._itemHasSelectable;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set itemHasSelectable(value:Boolean):void
+		{
+			if(this._itemHasSelectable == value)
+			{
+				return;
+			}
+			this._itemHasSelectable = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _itemHasEnabled:Boolean = false;
+
+		/**
+		 * If true, the renderer's enabled state will come from the renderer's
+		 * item using the appropriate field or function for enabled. If false,
+		 * the renderer will be enabled if its owner is enabled.
+		 *
+		 * <p>In the following example, the item doesn't have an accessory:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasEnabled = true;</listing>
+		 *
+		 * @default false
+		 */
+		public function get itemHasEnabled():Boolean
+		{
+			return this._itemHasEnabled;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set itemHasEnabled(value:Boolean):void
+		{
+			if(this._itemHasEnabled == value)
+			{
+				return;
+			}
+			this._itemHasEnabled = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
 		}
 
 		/**
@@ -280,6 +621,18 @@ package feathers.controls.renderers
 		 * Use <code>ACCESSORY_POSITION_MANUAL</code> to position the accessory
 		 * from the top-left corner.
 		 *
+		 * <p>In the following example, the accessory is placed on the bottom:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryPosition = BaseDefaultItemRenderer.ACCESSORY_POSITION_BOTTOM;</listing>
+		 *
+		 * @default BaseDefaultItemRenderer.ACCESSORY_POSITION_RIGHT
+		 *
+		 * @see #ACCESSORY_POSITION_TOP
+		 * @see #ACCESSORY_POSITION_RIGHT
+		 * @see #ACCESSORY_POSITION_BOTTOM
+		 * @see #ACCESSORY_POSITION_LEFT
+		 * @see #ACCESSORY_POSITION_MANUAL
 		 * @see #layoutOrder
 		 */
 		public function get accessoryPosition():String
@@ -313,10 +666,17 @@ package feathers.controls.renderers
 		 * <p>The <code>accessoryPositionOrigin</code> property will be ignored
 		 * if <code>accessoryPosition</code> is set to <code>ACCESSORY_POSITION_MANUAL</code>.</p>
 		 *
-		 * @see #accessoryPosition
-		 * @see #iconPosition
+		 * <p>In the following example, the layout order is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.layoutOrder = BaseDefaultItemRenderer.LAYOUT_ORDER_LABEL_ACCESSORY_ICON;</listing>
+		 *
+		 * @default BaseDefaultItemRenderer.LAYOUT_ORDER_LABEL_ICON_ACCESSORY
+		 *
 		 * @see LAYOUT_ORDER_LABEL_ICON_ACCESSORY
 		 * @see LAYOUT_ORDER_LABEL_ACCESSORY_ICON
+		 * @see #accessoryPosition
+		 * @see #iconPosition
 		 */
 		public function get layoutOrder():String
 		{
@@ -343,6 +703,15 @@ package feathers.controls.renderers
 
 		/**
 		 * Offsets the x position of the accessory by a certain number of pixels.
+		 *
+		 * <p>In the following example, the accessory x position is adjusted by 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryOffsetX = 20;</listing>
+		 *
+		 * @default 0
+		 *
+		 * @see #accessoryOffsetY
 		 */
 		public function get accessoryOffsetX():Number
 		{
@@ -369,6 +738,15 @@ package feathers.controls.renderers
 
 		/**
 		 * Offsets the y position of the accessory by a certain number of pixels.
+		 *
+		 * <p>In the following example, the accessory y position is adjusted by 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryOffsetY = 20;</listing>
+		 *
+		 * @default 0
+		 *
+		 * @see #accessoryOffsetX
 		 */
 		public function get accessoryOffsetY():Number
 		{
@@ -404,6 +782,13 @@ package feathers.controls.renderers
 		 * the accessory and the component it is relative to will be positioned
 		 * as far apart as possible.</p>
 		 *
+		 * <p>In the following example, the accessory gap is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryGap = 20;</listing>
+		 *
+		 * @default NaN
+		 *
 		 * @see #gap
 		 * @see #accessoryPosition
 		 */
@@ -428,9 +813,54 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
+		protected var _minAccessoryGap:Number = NaN;
+
+		/**
+		 * If the value of the <code>accessoryGap</code> property is
+		 * <code>Number.POSITIVE_INFINITY</code>, meaning that the gap will
+		 * fill as much space as possible, the final calculated value will not be
+		 * smaller than the value of the <code>minAccessoryGap</code> property.
+		 * If the value of <code>minAccessoryGap</code> is <code>NaN</code>, the
+		 * value of the <code>minGap</code> property will be used instead.
+		 *
+		 * <p>The following example ensures that the gap is never smaller than
+		 * 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * button.gap = Number.POSITIVE_INFINITY;
+		 * button.minGap = 20;</listing>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryGap = 20;</listing>
+		 *
+		 * @default NaN
+		 *
+		 * @see #accessoryGap
+		 */
+		public function get minAccessoryGap():Number
+		{
+			return this._minAccessoryGap;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set minAccessoryGap(value:Number):void
+		{
+			if(this._minAccessoryGap == value)
+			{
+				return;
+			}
+			this._minAccessoryGap = value;
+			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @private
+		 */
 		override protected function set currentState(value:String):void
 		{
-			if(!this._isToggle && !this.isSelectableWithoutToggle)
+			if(this._isEnabled && !this._isToggle && (!this.isSelectableWithoutToggle || (this._itemHasSelectable && !this.itemToSelectable(this._data))))
 			{
 				value = STATE_UP;
 			}
@@ -466,10 +896,104 @@ package feathers.controls.renderers
 		}
 
 		/**
-		 * If enabled, calls event.stopPropagation() when TouchEvents are
-		 * dispatched by the accessory.
+		 * @private
 		 */
-		public var stopAccessoryTouchEventPropagation:Boolean = true;
+		protected var accessoryTouchPointID:int = -1;
+
+		/**
+		 * @private
+		 */
+		protected var _stopScrollingOnAccessoryTouch:Boolean = true;
+
+		/**
+		 * If enabled, calls owner.stopScrolling() when TouchEvents are
+		 * dispatched by the accessory.
+		 *
+		 * <p>In the following example, the list won't stop scrolling when the
+		 * accessory is touched:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.stopScrollingOnAccessoryTouch = false;</listing>
+		 *
+		 * @default true
+		 */
+		public function get stopScrollingOnAccessoryTouch():Boolean
+		{
+			return this._stopScrollingOnAccessoryTouch;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set stopScrollingOnAccessoryTouch(value:Boolean):void
+		{
+			this._stopScrollingOnAccessoryTouch = value;
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _isSelectableOnAccessoryTouch:Boolean = false;
+
+		/**
+		 * If enabled, the item renderer may be selected by touching the
+		 * accessory. By default, the accessory will not trigger selection when
+		 * using <code>accessoryField</code> or <code>accessoryFunction</code>.
+		 *
+		 * <p>In the following example, the item renderer can be selected when
+		 * the accessory is touched:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.isSelectableOnAccessoryTouch = true;</listing>
+		 *
+		 * @default false
+		 */
+		public function get isSelectableOnAccessoryTouch():Boolean
+		{
+			return this._isSelectableOnAccessoryTouch;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set isSelectableOnAccessoryTouch(value:Boolean):void
+		{
+			this._isSelectableOnAccessoryTouch = value;
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _delayTextureCreationOnScroll:Boolean = false;
+
+		/**
+		 * If enabled, automatically manages the <code>delayTextureCreation</code>
+		 * property on accessory and icon <code>ImageLoader</code> instances
+		 * when the owner scrolls. This applies to the loaders created when the
+		 * following properties are set: <code>accessorySourceField</code>,
+		 * <code>accessorySourceFunction</code>, <code>iconSourceField</code>,
+		 * and <code>iconSourceFunction</code>.
+		 *
+		 * <p>In the following example, any loaded textures won't be uploaded to
+		 * the GPU until the owner stops scrolling:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.delayTextureCreationOnScroll = true;</listing>
+		 *
+		 * @default false
+		 */
+		public function get delayTextureCreationOnScroll():Boolean
+		{
+			return this._delayTextureCreationOnScroll;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set delayTextureCreationOnScroll(value:Boolean):void
+		{
+			this._delayTextureCreationOnScroll = value;
+		}
 
 		/**
 		 * @private
@@ -490,6 +1014,13 @@ package feathers.controls.renderers
 		 *     <li><code>labelFunction</code></li>
 		 *     <li><code>labelField</code></li>
 		 * </ol>
+		 *
+		 * <p>In the following example, the label field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.labelField = "text";</listing>
+		 *
+		 * @default "label"
 		 *
 		 * @see #labelFunction
 		 */
@@ -530,6 +1061,16 @@ package feathers.controls.renderers
 		 *     <li><code>labelField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the label function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.labelFunction = function( item:Object ):String
+		 * {
+		 *    return item.firstName + " " + item.lastName;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
 		 * @see #labelField
 		 */
 		public function get labelFunction():Function
@@ -563,10 +1104,20 @@ package feathers.controls.renderers
 		 * <ol>
 		 *     <li><code>iconSourceFunction</code></li>
 		 *     <li><code>iconSourceField</code></li>
+		 *     <li><code>iconLabelFunction</code></li>
+		 *     <li><code>iconLabelField</code></li>
 		 *     <li><code>iconFunction</code></li>
 		 *     <li><code>iconField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the icon field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.iconField = "photo";</listing>
+		 *
+		 * @default "icon"
+		 *
+		 * @see #itemHasIcon
 		 * @see #iconFunction
 		 * @see #iconSourceField
 		 * @see #iconSourceFunction
@@ -597,6 +1148,15 @@ package feathers.controls.renderers
 		/**
 		 * A function used to generate an icon for a specific item.
 		 *
+		 * <p>Note: As the list scrolls, this function will almost always be
+		 * called more than once for each individual item in the list's data
+		 * provider. Your function should not simply return a new icon every
+		 * time. This will result in the unnecessary creation and destruction of
+		 * many icons, which will overwork the garbage collector and hurt
+		 * performance. It's better to return a new icon the first time this
+		 * function is called for a particular item and then return the same
+		 * icon if that item is passed to this function again.</p>
+		 *
 		 * <p>The function is expected to have the following signature:</p>
 		 * <pre>function( item:Object ):DisplayObject</pre>
 		 *
@@ -604,10 +1164,29 @@ package feathers.controls.renderers
 		 * <ol>
 		 *     <li><code>iconSourceFunction</code></li>
 		 *     <li><code>iconSourceField</code></li>
+		 *     <li><code>iconLabelFunction</code></li>
+		 *     <li><code>iconLabelField</code></li>
 		 *     <li><code>iconFunction</code></li>
 		 *     <li><code>iconField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the icon function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.iconFunction = function( item:Object ):DisplayObject
+		 * {
+		 *    if(item in cachedIcons)
+		 *    {
+		 *        return cachedIcons[item];
+		 *    }
+		 *    var icon:Image = new Image( textureAtlas.getTexture( item.textureName ) );
+		 *    cachedIcons[item] = icon;
+		 *    return icon;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #itemHasIcon
 		 * @see #iconField
 		 * @see #iconSourceField
 		 * @see #iconSourceFunction
@@ -652,11 +1231,21 @@ package feathers.controls.renderers
 		 * <ol>
 		 *     <li><code>iconSourceFunction</code></li>
 		 *     <li><code>iconSourceField</code></li>
+		 *     <li><code>iconLabelFunction</code></li>
+		 *     <li><code>iconLabelField</code></li>
 		 *     <li><code>iconFunction</code></li>
 		 *     <li><code>iconField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the icon source field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.iconSourceField = "texture";</listing>
+		 *
+		 * @default "iconSource"
+		 *
 		 * @see feathers.controls.ImageLoader#source
+		 * @see #itemHasIcon
 		 * @see #iconLoaderFactory
 		 * @see #iconSourceFunction
 		 * @see #iconField
@@ -698,6 +1287,19 @@ package feathers.controls.renderers
 		 * a <code>iconField</code> or <code>iconFunction</code>
 		 * because the renderer can avoid costly display list manipulation.</p>
 		 *
+		 * <p>Note: As the list scrolls, this function will almost always be
+		 * called more than once for each individual item in the list's data
+		 * provider. Your function should not simply return a new texture every
+		 * time. This will result in the unnecessary creation and destruction of
+		 * many textures, which will overwork the garbage collector and hurt
+		 * performance. Creating a new texture at all is dangerous, unless you
+		 * are absolutely sure to dispose it when necessary because neither the
+		 * list nor its item renderer will dispose of the texture for you. If
+		 * you are absolutely sure that you are managing the texture memory with
+		 * proper disposal, it's better to return a new texture the first
+		 * time this function is called for a particular item and then return
+		 * the same texture if that item is passed to this function again.</p>
+		 *
 		 * <p>The function is expected to have the following signature:</p>
 		 * <pre>function( item:Object ):Object</pre>
 		 *
@@ -708,11 +1310,24 @@ package feathers.controls.renderers
 		 * <ol>
 		 *     <li><code>iconSourceFunction</code></li>
 		 *     <li><code>iconSourceField</code></li>
+		 *     <li><code>iconLabelFunction</code></li>
+		 *     <li><code>iconLabelField</code></li>
 		 *     <li><code>iconFunction</code></li>
 		 *     <li><code>iconField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the icon source function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.iconSourceFunction = function( item:Object ):Object
+		 * {
+		 *    return "http://www.example.com/thumbs/" + item.name + "-thumb.png";
+		 * };</listing>
+		 *
+		 * @default null
+		 *
 		 * @see feathers.controls.ImageLoader#source
+		 * @see #itemHasIcon
 		 * @see #iconLoaderFactory
 		 * @see #iconSourceField
 		 * @see #iconField
@@ -739,6 +1354,134 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
+		protected var _iconLabelField:String = "iconLabel";
+
+		/**
+		 * The field in the item that contains a string to be displayed in a
+		 * renderer-managed <code>ITextRenderer</code> in the icon position of
+		 * the renderer. The renderer will automatically reuse an internal
+		 * <code>ITextRenderer</code> and swap the text when the data changes.
+		 * This <code>ITextRenderer</code> may be skinned by changing the
+		 * <code>iconLabelFactory</code>.
+		 *
+		 * <p>Using an icon label will result in better performance than
+		 * passing in an <code>ITextRenderer</code> through a <code>iconField</code>
+		 * or <code>iconFunction</code> because the renderer can avoid
+		 * costly display list manipulation.</p>
+		 *
+		 * <p>All of the icon fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>iconSourceFunction</code></li>
+		 *     <li><code>iconSourceField</code></li>
+		 *     <li><code>iconLabelFunction</code></li>
+		 *     <li><code>iconLabelField</code></li>
+		 *     <li><code>iconFunction</code></li>
+		 *     <li><code>iconField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the icon label field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.iconLabelField = "text";</listing>
+		 *
+		 * @default "iconLabel"
+		 *
+		 * @see #itemHasIcon
+		 * @see #iconLabelFactory
+		 * @see #iconLabelFunction
+		 * @see #iconField
+		 * @see #iconFunction
+		 * @see #iconySourceField
+		 * @see #iconSourceFunction
+		 */
+		public function get iconLabelField():String
+		{
+			return this._iconLabelField;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set iconLabelField(value:String):void
+		{
+			if(this._iconLabelField == value)
+			{
+				return;
+			}
+			this._iconLabelField = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _iconLabelFunction:Function;
+
+		/**
+		 * A function that returns a string to be displayed in a
+		 * renderer-managed <code>ITextRenderer</code> in the icon position of
+		 * the renderer. The renderer will automatically reuse an internal
+		 * <code>ITextRenderer</code> and swap the text when the data changes.
+		 * This <code>ITextRenderer</code> may be skinned by changing the
+		 * <code>iconLabelFactory</code>.
+		 *
+		 * <p>Using an icon label will result in better performance than
+		 * passing in an <code>ITextRenderer</code> through a <code>iconField</code>
+		 * or <code>iconFunction</code> because the renderer can avoid costly
+		 * display list manipulation.</p>
+		 *
+		 * <p>The function is expected to have the following signature:</p>
+		 * <pre>function( item:Object ):String</pre>
+		 *
+		 * <p>All of the icon fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>iconSourceFunction</code></li>
+		 *     <li><code>iconSourceField</code></li>
+		 *     <li><code>iconLabelFunction</code></li>
+		 *     <li><code>iconLabelField</code></li>
+		 *     <li><code>iconFunction</code></li>
+		 *     <li><code>iconField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the icon label function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.iconLabelFunction = function( item:Object ):String
+		 * {
+		 *    return item.firstName + " " + item.lastName;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #itemHasIcon
+		 * @see #iconLabelFactory
+		 * @see #iconLabelField
+		 * @see #iconField
+		 * @see #iconFunction
+		 * @see #iconSourceField
+		 * @see #iconSourceFunction
+		 */
+		public function get iconLabelFunction():Function
+		{
+			return this._iconLabelFunction;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set iconLabelFunction(value:Function):void
+		{
+			if(this._iconLabelFunction == value)
+			{
+				return;
+			}
+			this._iconLabelFunction = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _accessoryField:String = "accessory";
 
 		/**
@@ -757,6 +1500,14 @@ package feathers.controls.renderers
 		 *     <li><code>accessoryField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the accessory field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryField = "component";</listing>
+		 *
+		 * @default "accessory"
+		 *
+		 * @see #itemHasAccessory
 		 * @see #accessorySourceField
 		 * @see #accessoryFunction
 		 * @see #accessorySourceFunction
@@ -792,6 +1543,15 @@ package feathers.controls.renderers
 		 * <code>Image</code> in the accessory position, it's better for
 		 * performance to use <code>accessorySourceFunction</code> instead.
 		 *
+		 * <p>Note: As the list scrolls, this function will almost always be
+		 * called more than once for each individual item in the list's data
+		 * provider. Your function should not simply return a new accessory
+		 * every time. This will result in the unnecessary creation and
+		 * destruction of many icons, which will overwork the garbage collector
+		 * and hurt performance. It's better to return a new accessory the first
+		 * time this function is called for a particular item and then return
+		 * the same accessory if that item is passed to this function again.</p>
+		 *
 		 * <p>The function is expected to have the following signature:</p>
 		 * <pre>function( item:Object ):DisplayObject</pre>
 		 *
@@ -805,6 +1565,23 @@ package feathers.controls.renderers
 		 *     <li><code>accessoryField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the accessory function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryFunction = function( item:Object ):DisplayObject
+		 * {
+		 *    if(item in cachedAccessories)
+		 *    {
+		 *        return cachedAccessories[item];
+		 *    }
+		 *    var accessory:DisplayObject = createAccessoryForItem( item );
+		 *    cachedAccessories[item] = accessory;
+		 *    return accessory;
+		 * };</listing>
+		 *
+		 * @default null
+		 **
+		 * @see #itemHasAccessory
 		 * @see #accessoryField
 		 * @see #accessorySourceField
 		 * @see #accessorySourceFunction
@@ -857,7 +1634,15 @@ package feathers.controls.renderers
 		 *     <li><code>accessoryField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the accessory source field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessorySourceField = "texture";</listing>
+		 *
+		 * @default "accessorySource"
+		 *
 		 * @see feathers.controls.ImageLoader#source
+		 * @see #itemHasAccessory
 		 * @see #accessoryLoaderFactory
 		 * @see #accessorySourceFunction
 		 * @see #accessoryField
@@ -901,6 +1686,19 @@ package feathers.controls.renderers
 		 * a <code>accessoryField</code> or <code>accessoryFunction</code>
 		 * because the renderer can avoid costly display list manipulation.</p>
 		 *
+		 * <p>Note: As the list scrolls, this function will almost always be
+		 * called more than once for each individual item in the list's data
+		 * provider. Your function should not simply return a new texture every
+		 * time. This will result in the unnecessary creation and destruction of
+		 * many textures, which will overwork the garbage collector and hurt
+		 * performance. Creating a new texture at all is dangerous, unless you
+		 * are absolutely sure to dispose it when necessary because neither the
+		 * list nor its item renderer will dispose of the texture for you. If
+		 * you are absolutely sure that you are managing the texture memory with
+		 * proper disposal, it's better to return a new texture the first
+		 * time this function is called for a particular item and then return
+		 * the same texture if that item is passed to this function again.</p>
+		 *
 		 * <p>The function is expected to have the following signature:</p>
 		 * <pre>function( item:Object ):Object</pre>
 		 *
@@ -917,7 +1715,18 @@ package feathers.controls.renderers
 		 *     <li><code>accessoryField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the accessory source function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessorySourceFunction = function( item:Object ):Object
+		 * {
+		 *    return "http://www.example.com/thumbs/" + item.name + "-thumb.png";
+		 * };</listing>
+		 *
+		 * @default null
+		 *
 		 * @see feathers.controls.ImageLoader#source
+		 * @see #itemHasAccessory
 		 * @see #accessoryLoaderFactory
 		 * @see #accessorySourceField
 		 * @see #accessoryField
@@ -950,14 +1759,14 @@ package feathers.controls.renderers
 
 		/**
 		 * The field in the item that contains a string to be displayed in a
-		 * renderer-managed <code>Label</code> in the accessory position of the
-		 * renderer. The renderer will automatically reuse an internal
-		 * <code>Label</code> and swap the text when the data changes. This
-		 * <code>Label</code> may be skinned by changing the
+		 * renderer-managed <code>ITextRenderer</code> in the accessory position
+		 * of the renderer. The renderer will automatically reuse an internal
+		 * <code>ITextRenderer</code> and swap the text when the data changes.
+		 * This <code>ITextRenderer</code> may be skinned by changing the
 		 * <code>accessoryLabelFactory</code>.
 		 *
 		 * <p>Using an accessory label will result in better performance than
-		 * passing in a <code>Label</code> through a <code>accessoryField</code>
+		 * passing in a <code>ITextRenderer</code> through an <code>accessoryField</code>
 		 * or <code>accessoryFunction</code> because the renderer can avoid
 		 * costly display list manipulation.</p>
 		 *
@@ -971,6 +1780,14 @@ package feathers.controls.renderers
 		 *     <li><code>accessoryField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the accessory label field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryLabelField = "text";</listing>
+		 *
+		 * @default "accessoryLabel"
+		 **
+		 * @see #itemHasAccessory
 		 * @see #accessoryLabelFactory
 		 * @see #accessoryLabelFunction
 		 * @see #accessoryField
@@ -1003,14 +1820,14 @@ package feathers.controls.renderers
 
 		/**
 		 * A function that returns a string to be displayed in a
-		 * renderer-managed <code>Label</code> in the accessory position of the
-		 * renderer. The renderer will automatically reuse an internal
-		 * <code>Label</code> and swap the text when the data changes. This
-		 * <code>Label</code> may be skinned by changing the
+		 * renderer-managed <code>ITextRenderer</code> in the accessory position
+		 * of the renderer. The renderer will automatically reuse an internal
+		 * <code>ITextRenderer</code> and swap the text when the data changes.
+		 * This <code>ITextRenderer</code> may be skinned by changing the
 		 * <code>accessoryLabelFactory</code>.
 		 *
 		 * <p>Using an accessory label will result in better performance than
-		 * passing in a <code>Label</code> through a <code>accessoryField</code>
+		 * passing in an <code>ITextRenderer</code> through an <code>accessoryField</code>
 		 * or <code>accessoryFunction</code> because the renderer can avoid
 		 * costly display list manipulation.</p>
 		 *
@@ -1027,6 +1844,17 @@ package feathers.controls.renderers
 		 *     <li><code>accessoryField</code></li>
 		 * </ol>
 		 *
+		 * <p>In the following example, the accessory label function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryLabelFunction = function( item:Object ):String
+		 * {
+		 *    return item.firstName + " " + item.lastName;
+		 * };</listing>
+		 *
+		 * @default null
+		 **
+		 * @see #itemHasAccessory
 		 * @see #accessoryLabelFactory
 		 * @see #accessoryLabelField
 		 * @see #accessoryField
@@ -1055,6 +1883,491 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
+		protected var _skinField:String = "skin";
+
+		/**
+		 * The field in the item that contains a display object to be displayed
+		 * as a background skin.
+		 *
+		 * <p>All of the icon fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>skinSourceFunction</code></li>
+		 *     <li><code>skinSourceField</code></li>
+		 *     <li><code>skinFunction</code></li>
+		 *     <li><code>skinField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the skin field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasSkin = true;
+		 * renderer.skinField = "background";</listing>
+		 *
+		 * @default "skin"
+		 *
+		 * @see #itemHasSkin
+		 * @see #skinFunction
+		 * @see #skinSourceField
+		 * @see #skinSourceFunction
+		 */
+		public function get skinField():String
+		{
+			return this._skinField;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set skinField(value:String):void
+		{
+			if(this._skinField == value)
+			{
+				return;
+			}
+			this._skinField = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _skinFunction:Function;
+
+		/**
+		 * A function used to generate a background skin for a specific item.
+		 *
+		 * <p>Note: As the list scrolls, this function will almost always be
+		 * called more than once for each individual item in the list's data
+		 * provider. Your function should not simply return a new display object
+		 * every time. This will result in the unnecessary creation and
+		 * destruction of many skins, which will overwork the garbage collector
+		 * and hurt performance. It's better to return a new skin the first time
+		 * this function is called for a particular item and then return the same
+		 * skin if that item is passed to this function again.</p>
+		 *
+		 * <p>The function is expected to have the following signature:</p>
+		 * <pre>function( item:Object ):DisplayObject</pre>
+		 *
+		 * <p>All of the skin fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>skinSourceFunction</code></li>
+		 *     <li><code>skinSourceField</code></li>
+		 *     <li><code>skinFunction</code></li>
+		 *     <li><code>skinField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the skin function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasSkin = true;
+		 * renderer.skinFunction = function( item:Object ):DisplayObject
+		 * {
+		 *    if(item in cachedSkin)
+		 *    {
+		 *        return cachedSkin[item];
+		 *    }
+		 *    var skin:Image = new Image( textureAtlas.getTexture( item.textureName ) );
+		 *    cachedSkin[item] = skin;
+		 *    return skin;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #itemHasSkin
+		 * @see #skinField
+		 * @see #skinSourceField
+		 * @see #skinSourceFunction
+		 */
+		public function get skinFunction():Function
+		{
+			return this._skinFunction;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set skinFunction(value:Function):void
+		{
+			if(this._skinFunction == value)
+			{
+				return;
+			}
+			this._skinFunction = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _skinSourceField:String = "skinSource";
+
+		/**
+		 * The field in the item that contains a <code>starling.textures.Texture</code>
+		 * or a URL that points to a bitmap to be used as the item renderer's
+		 * skin. The renderer will automatically manage and reuse an internal
+		 * <code>ImageLoader</code> sub-component and this value will be passed
+		 * to the <code>source</code> property. The <code>ImageLoader</code> may
+		 * be customized by changing the <code>skinLoaderFactory</code>.
+		 *
+		 * <p>Using a skin source will result in better performance than
+		 * passing in an <code>ImageLoader</code> or <code>Image</code> through
+		 * a <code>skinField</code> or <code>skinFunction</code>
+		 * because the renderer can avoid costly display list manipulation.</p>
+		 *
+		 * <p>All of the skin fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>skinSourceFunction</code></li>
+		 *     <li><code>skinSourceField</code></li>
+		 *     <li><code>skinFunction</code></li>
+		 *     <li><code>skinField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the skin source field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasSkin = true;
+		 * renderer.skinSourceField = "texture";</listing>
+		 *
+		 * @default "skinSource"
+		 *
+		 * @see feathers.controls.ImageLoader#source
+		 * @see #itemHasSkin
+		 * @see #skinLoaderFactory
+		 * @see #skinSourceFunction
+		 * @see #skinField
+		 * @see #skinFunction
+		 */
+		public function get skinSourceField():String
+		{
+			return this._skinSourceField;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set skinSourceField(value:String):void
+		{
+			if(this._iconSourceField == value)
+			{
+				return;
+			}
+			this._skinSourceField = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _skinSourceFunction:Function;
+
+		/**
+		 * A function used to generate a <code>starling.textures.Texture</code>
+		 * or a URL that points to a bitmap to be used as the item renderer's
+		 * skin. The renderer will automatically manage and reuse an internal
+		 * <code>ImageLoader</code> sub-component and this value will be passed
+		 * to the <code>source</code> property. The <code>ImageLoader</code> may
+		 * be customized by changing the <code>skinLoaderFactory</code>.
+		 *
+		 * <p>Using a skin source will result in better performance than
+		 * passing in an <code>ImageLoader</code> or <code>Image</code> through
+		 * a <code>skinField</code> or <code>skinnFunction</code>
+		 * because the renderer can avoid costly display list manipulation.</p>
+		 *
+		 * <p>Note: As the list scrolls, this function will almost always be
+		 * called more than once for each individual item in the list's data
+		 * provider. Your function should not simply return a new texture every
+		 * time. This will result in the unnecessary creation and destruction of
+		 * many textures, which will overwork the garbage collector and hurt
+		 * performance. Creating a new texture at all is dangerous, unless you
+		 * are absolutely sure to dispose it when necessary because neither the
+		 * list nor its item renderer will dispose of the texture for you. If
+		 * you are absolutely sure that you are managing the texture memory with
+		 * proper disposal, it's better to return a new texture the first
+		 * time this function is called for a particular item and then return
+		 * the same texture if that item is passed to this function again.</p>
+		 *
+		 * <p>The function is expected to have the following signature:</p>
+		 * <pre>function( item:Object ):Object</pre>
+		 *
+		 * <p>The return value is a valid value for the <code>source</code>
+		 * property of an <code>ImageLoader</code> component.</p>
+		 *
+		 * <p>All of the skin fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>skinSourceFunction</code></li>
+		 *     <li><code>skinSourceField</code></li>
+		 *     <li><code>skinFunction</code></li>
+		 *     <li><code>skinField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the skin source function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasSkin = true;
+		 * renderer.skinSourceFunction = function( item:Object ):Object
+		 * {
+		 *    return "http://www.example.com/images/" + item.name + "-skin.png";
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.controls.ImageLoader#source
+		 * @see #itemHasSkin
+		 * @see #skinLoaderFactory
+		 * @see #skinSourceField
+		 * @see #skinField
+		 * @see #skinFunction
+		 */
+		public function get skinSourceFunction():Function
+		{
+			return this._skinSourceFunction;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set skinSourceFunction(value:Function):void
+		{
+			if(this._skinSourceFunction == value)
+			{
+				return;
+			}
+			this._skinSourceFunction = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _selectableField:String = "selectable";
+
+		/**
+		 * The field in the item that determines if the item renderer can be
+		 * selected, if the list allows selection. If the item does not have
+		 * this field, and a <code>selectableFunction</code> is not defined,
+		 * then the renderer will default to being selectable.
+		 *
+		 * <p>All of the label fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>selectableFunction</code></li>
+		 *     <li><code>selectableField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the selectable field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasSelectable = true;
+		 * renderer.selectableField = "isSelectable";</listing>
+		 *
+		 * @default "selectable"
+		 *
+		 * @see #selectableFunction
+		 */
+		public function get selectableField():String
+		{
+			return this._selectableField;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set selectableField(value:String):void
+		{
+			if(this._selectableField == value)
+			{
+				return;
+			}
+			this._selectableField = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _selectableFunction:Function;
+
+		/**
+		 * A function used to determine if a specific item is selectable. If this
+		 * function is not null, then the <code>selectableField</code> will be
+		 * ignored.
+		 *
+		 * <p>The function is expected to have the following signature:</p>
+		 * <pre>function( item:Object ):Boolean</pre>
+		 *
+		 * <p>All of the selectable fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>selectableFunction</code></li>
+		 *     <li><code>selectableField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the selectable function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasSelectable = true;
+		 * renderer.selectableFunction = function( item:Object ):Boolean
+		 * {
+		 *    return item.isSelectable;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #selectableField
+		 */
+		public function get selectableFunction():Function
+		{
+			return this._selectableFunction;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set selectableFunction(value:Function):void
+		{
+			if(this._selectableFunction == value)
+			{
+				return;
+			}
+			this._selectableFunction = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _enabledField:String = "enabled";
+
+		/**
+		 * The field in the item that determines if the item renderer is
+		 * enabled, if the list is enabled. If the item does not have
+		 * this field, and a <code>enabledFunction</code> is not defined,
+		 * then the renderer will default to being enabled.
+		 *
+		 * <p>All of the label fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>enabledFunction</code></li>
+		 *     <li><code>enabledField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the enabled field is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasEnabled = true;
+		 * renderer.enabledField = "isEnabled";</listing>
+		 *
+		 * @default "enabled"
+		 *
+		 * @see #enabledFunction
+		 */
+		public function get enabledField():String
+		{
+			return this._enabledField;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set enabledField(value:String):void
+		{
+			if(this._enabledField == value)
+			{
+				return;
+			}
+			this._enabledField = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _enabledFunction:Function;
+
+		/**
+		 * A function used to determine if a specific item is enabled. If this
+		 * function is not null, then the <code>enabledField</code> will be
+		 * ignored.
+		 *
+		 * <p>The function is expected to have the following signature:</p>
+		 * <pre>function( item:Object ):Boolean</pre>
+		 *
+		 * <p>All of the enabled fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>enabledFunction</code></li>
+		 *     <li><code>enabledField</code></li>
+		 * </ol>
+		 *
+		 * <p>In the following example, the enabled function is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.itemHasEnabled = true;
+		 * renderer.enabledFunction = function( item:Object ):Boolean
+		 * {
+		 *    return item.isEnabled;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #enabledField
+		 */
+		public function get enabledFunction():Function
+		{
+			return this._enabledFunction;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set enabledFunction(value:Function):void
+		{
+			if(this._enabledFunction == value)
+			{
+				return;
+			}
+			this._enabledFunction = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _explicitIsToggle:Boolean = false;
+
+		/**
+		 * @private
+		 */
+		override public function set isToggle(value:Boolean):void
+		{
+			if(this._explicitIsToggle == value)
+			{
+				return;
+			}
+			super.isToggle = value;
+			this._explicitIsToggle = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _explicitIsEnabled:Boolean = false;
+
+		/**
+		 * @private
+		 */
+		override public function set isEnabled(value:Boolean):void
+		{
+			if(this._explicitIsEnabled == value)
+			{
+				return;
+			}
+			this._explicitIsEnabled = value;
+			super.isEnabled = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+			this.invalidate(INVALIDATION_FLAG_STATE);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _iconLoaderFactory:Function = defaultLoaderFactory;
 
 		/**
@@ -1066,6 +2379,18 @@ package feathers.controls.renderers
 		 *
 		 * <p>The function is expected to have the following signature:</p>
 		 * <pre>function():ImageLoader</pre>
+		 *
+		 * <p>In the following example, the loader factory is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.iconLoaderFactory = function():ImageLoader
+		 * {
+		 *    var loader:ImageLoader = new ImageLoader();
+		 *    loader.snapToPixels = true;
+		 *    return loader;
+		 * };</listing>
+		 *
+		 * @default function():ImageLoader { return new ImageLoader(); }
 		 *
 		 * @see feathers.controls.ImageLoader
 		 * @see #iconSourceField
@@ -1086,6 +2411,136 @@ package feathers.controls.renderers
 				return;
 			}
 			this._iconLoaderFactory = value;
+			this._iconIsFromItem = false;
+			this.replaceIcon(null);
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _iconLabelFactory:Function;
+
+		/**
+		 * A function that generates <code>ITextRenderer</code> that uses the result
+		 * of <code>iconLabelField</code> or <code>iconLabelFunction</code>.
+		 * CAn be used to set properties on the <code>ITextRenderer</code>.
+		 *
+		 * <p>The function is expected to have the following signature:</p>
+		 * <pre>function():ITextRenderer</pre>
+		 *
+		 * <p>In the following example, the icon label factory is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.iconLabelFactory = function():ITextRenderer
+		 * {
+		 *    var renderer:TextFieldTextRenderer = new TextFieldTextRenderer();
+		 *    renderer.textFormat = new TextFormat( "Source Sans Pro", 16, 0x333333 );
+		 *    renderer.embedFonts = true;
+		 *    return renderer;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.core.ITextRenderer
+		 * @see feathers.core.FeathersControl#defaultTextRendererFactory
+		 * @see #iconLabelField
+		 * @see #iconLabelFunction
+		 */
+		public function get iconLabelFactory():Function
+		{
+			return this._iconLabelFactory;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set iconLabelFactory(value:Function):void
+		{
+			if(this._iconLabelFactory == value)
+			{
+				return;
+			}
+			this._iconLabelFactory = value;
+			this._iconIsFromItem = false;
+			this.replaceIcon(null);
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _iconLabelProperties:PropertyProxy;
+
+		/**
+		 * A set of key/value pairs to be passed down to a label icon, if one
+		 * exists. The title is an <code>ITextRenderer</code> instance. The
+		 * available properties depend on which <code>ITextRenderer</code>
+		 * implementation is used.
+		 *
+		 * <p>If the subcomponent has its own subcomponents, their properties
+		 * can be set too, using attribute <code>&#64;</code> notation. For example,
+		 * to set the skin on the thumb which is in a <code>SimpleScrollBar</code>,
+		 * which is in a <code>List</code>, you can use the following syntax:</p>
+		 * <pre>list.verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
+		 *
+		 * <p>Setting properties in a <code>iconLabelFactory</code>
+		 * function instead of using <code>iconLabelProperties</code> will
+		 * result in better performance.</p>
+		 *
+		 * <p>In the following example, the icon label properties are customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.&#64;iconLabelProperties.textFormat = new TextFormat( "Source Sans Pro", 16, 0x333333 );
+		 * renderer.&#64;iconLabelProperties.embedFonts = true;</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.core.ITextRenderer
+		 * @see #iconLabelFactory
+		 * @see #iconLabelField
+		 * @see #iconLabelFunction
+		 */
+		public function get iconLabelProperties():Object
+		{
+			if(!this._iconLabelProperties)
+			{
+				this._iconLabelProperties = new PropertyProxy(childProperties_onChange);
+			}
+			return this._iconLabelProperties;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set iconLabelProperties(value:Object):void
+		{
+			if(this._iconLabelProperties == value)
+			{
+				return;
+			}
+			if(!value)
+			{
+				value = new PropertyProxy();
+			}
+			if(!(value is PropertyProxy))
+			{
+				const newValue:PropertyProxy = new PropertyProxy();
+				for(var propertyName:String in value)
+				{
+					newValue[propertyName] = value[propertyName];
+				}
+				value = newValue;
+			}
+			if(this._iconLabelProperties)
+			{
+				this._iconLabelProperties.removeOnChangeCallback(childProperties_onChange);
+			}
+			this._iconLabelProperties = PropertyProxy(value);
+			if(this._iconLabelProperties)
+			{
+				this._iconLabelProperties.addOnChangeCallback(childProperties_onChange);
+			}
 			this.invalidate(INVALIDATION_FLAG_STYLES);
 		}
 
@@ -1103,6 +2558,18 @@ package feathers.controls.renderers
 		 *
 		 * <p>The function is expected to have the following signature:</p>
 		 * <pre>function():ImageLoader</pre>
+		 *
+		 * <p>In the following example, the loader factory is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryLoaderFactory = function():ImageLoader
+		 * {
+		 *    var loader:ImageLoader = new ImageLoader();
+		 *    loader.snapToPixels = true;
+		 *    return loader;
+		 * };</listing>
+		 *
+		 * @default function():ImageLoader { return new ImageLoader(); }
 		 *
 		 * @see feathers.controls.ImageLoader
 		 * @see #accessorySourceField;
@@ -1123,7 +2590,9 @@ package feathers.controls.renderers
 				return;
 			}
 			this._accessoryLoaderFactory = value;
-			this.invalidate(INVALIDATION_FLAG_STYLES);
+			this._accessoryIsFromItem = false;
+			this.replaceAccessory(null);
+			this.invalidate(INVALIDATION_FLAG_DATA);
 		}
 
 		/**
@@ -1138,6 +2607,19 @@ package feathers.controls.renderers
 		 *
 		 * <p>The function is expected to have the following signature:</p>
 		 * <pre>function():ITextRenderer</pre>
+		 *
+		 * <p>In the following example, the accessory label factory is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.accessoryLabelFactory = function():ITextRenderer
+		 * {
+		 *    var renderer:TextFieldTextRenderer = new TextFieldTextRenderer();
+		 *    renderer.textFormat = new TextFormat( "Source Sans Pro", 16, 0x333333 );
+		 *    renderer.embedFonts = true;
+		 *    return renderer;
+		 * };</listing>
+		 *
+		 * @default null
 		 *
 		 * @see feathers.core.ITextRenderer
 		 * @see feathers.core.FeathersControl#defaultTextRendererFactory
@@ -1159,7 +2641,9 @@ package feathers.controls.renderers
 				return;
 			}
 			this._accessoryLabelFactory = value;
-			this.invalidate(INVALIDATION_FLAG_STYLES);
+			this._accessoryIsFromItem = false;
+			this.replaceAccessory(null);
+			this.invalidate(INVALIDATION_FLAG_DATA);
 		}
 
 		/**
@@ -1168,16 +2652,31 @@ package feathers.controls.renderers
 		protected var _accessoryLabelProperties:PropertyProxy;
 
 		/**
-		 * A set of key/value pairs to be passed down to a label accessory.
+		 * A set of key/value pairs to be passed down to a label accessory. The
+		 * title is an <code>ITextRenderer</code> instance. The available
+		 * properties depend on which <code>ITextRenderer</code> implementation
+		 * is used.
 		 *
 		 * <p>If the subcomponent has its own subcomponents, their properties
 		 * can be set too, using attribute <code>&#64;</code> notation. For example,
-		 * to set the skin on the thumb of a <code>SimpleScrollBar</code>
-		 * which is in a <code>Scroller</code> which is in a <code>List</code>,
-		 * you can use the following syntax:</p>
-		 * <pre>list.scrollerProperties.&#64;verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
+		 * to set the skin on the thumb which is in a <code>SimpleScrollBar</code>,
+		 * which is in a <code>List</code>, you can use the following syntax:</p>
+		 * <pre>list.verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
+		 *
+		 * <p>Setting properties in a <code>accessoryLabelFactory</code>
+		 * function instead of using <code>accessoryLabelProperties</code> will
+		 * result in better performance.</p>
+		 *
+		 * <p>In the following example, the accessory label properties are customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.&#64;accessoryLabelProperties.textFormat = new TextFormat( "Source Sans Pro", 16, 0x333333 );
+		 * renderer.&#64;accessoryLabelProperties.embedFonts = true;</listing>
+		 *
+		 * @default null
 		 *
 		 * @see feathers.core.ITextRenderer
+		 * @see #accessoryLabelFactory
 		 * @see #accessoryLabelField
 		 * @see #accessoryLabelFunction
 		 */
@@ -1185,7 +2684,7 @@ package feathers.controls.renderers
 		{
 			if(!this._accessoryLabelProperties)
 			{
-				this._accessoryLabelProperties = new PropertyProxy(accessoryLabelProperties_onChange);
+				this._accessoryLabelProperties = new PropertyProxy(childProperties_onChange);
 			}
 			return this._accessoryLabelProperties;
 		}
@@ -1214,12 +2713,12 @@ package feathers.controls.renderers
 			}
 			if(this._accessoryLabelProperties)
 			{
-				this._accessoryLabelProperties.removeOnChangeCallback(accessoryLabelProperties_onChange);
+				this._accessoryLabelProperties.removeOnChangeCallback(childProperties_onChange);
 			}
 			this._accessoryLabelProperties = PropertyProxy(value);
 			if(this._accessoryLabelProperties)
 			{
-				this._accessoryLabelProperties.addOnChangeCallback(accessoryLabelProperties_onChange);
+				this._accessoryLabelProperties.addOnChangeCallback(childProperties_onChange);
 			}
 			this.invalidate(INVALIDATION_FLAG_STYLES);
 		}
@@ -1227,10 +2726,85 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
+		protected var _skinLoaderFactory:Function = defaultLoaderFactory;
+
+		/**
+		 * A function that generates an <code>ImageLoader</code> that uses the result
+		 * of <code>skinSourceField</code> or <code>skinSourceFunction</code>.
+		 * Useful for transforming the <code>ImageLoader</code> in some way. For
+		 * example, you might want to scale the texture for current DPI or apply
+		 * pixel snapping.
+		 *
+		 * <p>The function is expected to have the following signature:</p>
+		 * <pre>function():ImageLoader</pre>
+		 *
+		 * <p>In the following example, the loader factory is customized:</p>
+		 *
+		 * <listing version="3.0">
+		 * renderer.skinLoaderFactory = function():ImageLoader
+		 * {
+		 *    var loader:ImageLoader = new ImageLoader();
+		 *    loader.snapToPixels = true;
+		 *    return loader;
+		 * };</listing>
+		 *
+		 * @default function():ImageLoader { return new ImageLoader(); }
+		 *
+		 * @see feathers.controls.ImageLoader
+		 * @see #skinSourceField
+		 * @see #skinSourceFunction
+		 */
+		public function get skinLoaderFactory():Function
+		{
+			return this._skinLoaderFactory;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set skinLoaderFactory(value:Function):void
+		{
+			if(this._skinLoaderFactory == value)
+			{
+				return;
+			}
+			this._skinLoaderFactory = value;
+			this._skinIsFromItem = false;
+			this.replaceSkin(null);
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _ignoreAccessoryResizes:Boolean = false;
+
+		/**
+		 * @private
+		 */
 		override public function dispose():void
 		{
-			this.replaceIcon(null);
-			this.replaceAccessory(null);
+			if(this._iconIsFromItem)
+			{
+				this.replaceIcon(null);
+			}
+			if(this._accessoryIsFromItem)
+			{
+				this.replaceAccessory(null);
+			}
+			if(this._skinIsFromItem)
+			{
+				this.replaceSkin(null);
+			}
+			if(this._stateDelayTimer)
+			{
+				if(this._stateDelayTimer.running)
+				{
+					this._stateDelayTimer.stop();
+				}
+				this._stateDelayTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, stateDelayTimer_timerCompleteHandler);
+				this._stateDelayTimer = null;
+			}
 			super.dispose();
 		}
 
@@ -1248,13 +2822,27 @@ package feathers.controls.renderers
 		{
 			if(this._labelFunction != null)
 			{
-				return this._labelFunction(item) as String;
+				var labelResult:Object = this._labelFunction(item);
+				if(labelResult is String)
+				{
+					return labelResult as String;
+				}
+				return labelResult.toString();
 			}
 			else if(this._labelField != null && item && item.hasOwnProperty(this._labelField))
 			{
-				return item[this._labelField] as String;
+				labelResult = item[this._labelField];
+				if(labelResult is String)
+				{
+					return labelResult as String;
+				}
+				return labelResult.toString();
 			}
-			else if(item is Object)
+			else if(item is String)
+			{
+				return item as String;
+			}
+			else if(item)
 			{
 				return item.toString();
 			}
@@ -1269,6 +2857,8 @@ package feathers.controls.renderers
 		 * <ol>
 		 *     <li><code>iconSourceFunction</code></li>
 		 *     <li><code>iconSourceField</code></li>
+		 *     <li><code>iconLabelFunction</code></li>
+		 *     <li><code>iconLabelField</code></li>
 		 *     <li><code>iconFunction</code></li>
 		 *     <li><code>iconField</code></li>
 		 * </ol>
@@ -1279,13 +2869,39 @@ package feathers.controls.renderers
 			{
 				var source:Object = this._iconSourceFunction(item);
 				this.refreshIconSource(source);
-				return this.iconImage;
+				return this.iconLoader;
 			}
 			else if(this._iconSourceField != null && item && item.hasOwnProperty(this._iconSourceField))
 			{
 				source = item[this._iconSourceField];
 				this.refreshIconSource(source);
-				return this.iconImage;
+				return this.iconLoader;
+			}
+			else if(this._iconLabelFunction != null)
+			{
+				var labelResult:Object = this._iconLabelFunction(item);
+				if(labelResult is String)
+				{
+					this.refreshIconLabel(labelResult as String);
+				}
+				else
+				{
+					this.refreshIconLabel(labelResult.toString());
+				}
+				return DisplayObject(this.iconLabel);
+			}
+			else if(this._iconLabelField != null && item && item.hasOwnProperty(this._iconLabelField))
+			{
+				labelResult = item[this._iconLabelField];
+				if(labelResult is String)
+				{
+					this.refreshIconLabel(labelResult as String);
+				}
+				else
+				{
+					this.refreshIconLabel(labelResult.toString());
+				}
+				return DisplayObject(this.iconLabel);
 			}
 			else if(this._iconFunction != null)
 			{
@@ -1317,26 +2933,40 @@ package feathers.controls.renderers
 		{
 			if(this._accessorySourceFunction != null)
 			{
-				var source:Texture = this._accessorySourceFunction(item);
+				var source:Object = this._accessorySourceFunction(item);
 				this.refreshAccessorySource(source);
-				return this.accessoryImage;
+				return this.accessoryLoader;
 			}
 			else if(this._accessorySourceField != null && item && item.hasOwnProperty(this._accessorySourceField))
 			{
 				source = item[this._accessorySourceField];
 				this.refreshAccessorySource(source);
-				return this.accessoryImage;
+				return this.accessoryLoader;
 			}
 			else if(this._accessoryLabelFunction != null)
 			{
-				var label:String = this._accessoryLabelFunction(item) as String;
-				this.refreshAccessoryLabel(label);
+				var labelResult:Object = this._accessoryLabelFunction(item);
+				if(labelResult is String)
+				{
+					this.refreshAccessoryLabel(labelResult as String);
+				}
+				else
+				{
+					this.refreshAccessoryLabel(labelResult.toString());
+				}
 				return DisplayObject(this.accessoryLabel);
 			}
 			else if(this._accessoryLabelField != null && item && item.hasOwnProperty(this._accessoryLabelField))
 			{
-				label = item[this._accessoryLabelField] as String;
-				this.refreshAccessoryLabel(label);
+				labelResult = item[this._accessoryLabelField];
+				if(labelResult is String)
+				{
+					this.refreshAccessoryLabel(labelResult as String);
+				}
+				else
+				{
+					this.refreshAccessoryLabel(labelResult.toString());
+				}
 				return DisplayObject(this.accessoryLabel);
 			}
 			else if(this._accessoryFunction != null)
@@ -1352,44 +2982,125 @@ package feathers.controls.renderers
 		}
 
 		/**
-		 * @private
+		 * Uses the skin fields and functions to generate a skin for a specific
+		 * item.
+		 *
+		 * <p>All of the skin fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>skinSourceFunction</code></li>
+		 *     <li><code>skinSourceField</code></li>
+		 *     <li><code>skinFunction</code></li>
+		 *     <li><code>skinField</code></li>
+		 * </ol>
 		 */
-		override protected function draw():void
+		protected function itemToSkin(item:Object):DisplayObject
 		{
-			const dataInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_DATA);
-			const stylesInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_STYLES);
-			if(dataInvalid)
+			if(this._skinSourceFunction != null)
 			{
-				this.commitData();
+				var source:Object = this._skinSourceFunction(item);
+				this.refreshSkinSource(source);
+				return this.skinLoader;
 			}
-			if(dataInvalid || stylesInvalid)
+			else if(this._skinSourceField != null && item && item.hasOwnProperty(this._skinSourceField))
 			{
-				this.refreshAccessoryLabelStyles();
+				source = item[this._skinSourceField];
+				this.refreshSkinSource(source);
+				return this.skinLoader;
 			}
-			super.draw();
+			else if(this._skinFunction != null)
+			{
+				return this._skinFunction(item) as DisplayObject;
+			}
+			else if(this._skinField != null && item && item.hasOwnProperty(this._skinField))
+			{
+				return item[this._skinField] as DisplayObject;
+			}
+
+			return null;
+		}
+
+		/**
+		 * Uses the selectable fields and functions to generate a selectable
+		 * value for a specific item.
+		 *
+		 * <p>All of the selectable fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>selectableFunction</code></li>
+		 *     <li><code>selectableField</code></li>
+		 * </ol>
+		 */
+		protected function itemToSelectable(item:Object):Boolean
+		{
+			if(this._selectableFunction != null)
+			{
+				return this._selectableFunction(item) as Boolean;
+			}
+			else if(this._selectableField != null && item && item.hasOwnProperty(this._selectableField))
+			{
+				return item[this._selectableField] as Boolean;
+			}
+
+			return true;
+		}
+
+		/**
+		 * Uses the enabled fields and functions to generate a enabled value for
+		 * a specific item.
+		 *
+		 * <p>All of the enabled fields and functions, ordered by priority:</p>
+		 * <ol>
+		 *     <li><code>enabledFunction</code></li>
+		 *     <li><code>enabledField</code></li>
+		 * </ol>
+		 */
+		protected function itemToEnabled(item:Object):Boolean
+		{
+			if(this._enabledFunction != null)
+			{
+				return this._enabledFunction(item) as Boolean;
+			}
+			else if(this._enabledField != null && item && item.hasOwnProperty(this._enabledField))
+			{
+				return item[this._enabledField] as Boolean;
+			}
+
+			return true;
 		}
 
 		/**
 		 * @private
 		 */
+		override protected function draw():void
+		{
+			var stateInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_STATE);
+			var dataInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_DATA);
+			var stylesInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_STYLES);
+			if(dataInvalid)
+			{
+				this.commitData();
+			}
+			if(stateInvalid || dataInvalid || stylesInvalid)
+			{
+				this.refreshAccessory();
+			}
+			super.draw();
+		}
+
+		/**
+		 * @inheritDoc
+		 */
 		override protected function autoSizeIfNeeded():Boolean
 		{
-			const needsWidth:Boolean = isNaN(this.explicitWidth);
-			const needsHeight:Boolean = isNaN(this.explicitHeight);
+			var needsWidth:Boolean = isNaN(this.explicitWidth);
+			var needsHeight:Boolean = isNaN(this.explicitHeight);
 			if(!needsWidth && !needsHeight)
 			{
 				return false;
 			}
+			const oldIgnoreAccessoryResizes:Boolean = this._ignoreAccessoryResizes;
+			this._ignoreAccessoryResizes = true;
 			this.refreshMaxLabelWidth(true);
 			this.labelTextRenderer.measureText(HELPER_POINT);
-			if(this.accessory is IFeathersControl)
-			{
-				IFeathersControl(this.accessory).validate();
-			}
-			if(this.currentIcon is IFeathersControl)
-			{
-				IFeathersControl(this.currentIcon).validate();
-			}
 			var newWidth:Number = this.explicitWidth;
 			if(needsWidth)
 			{
@@ -1397,29 +3108,31 @@ package feathers.controls.renderers
 				{
 					newWidth = HELPER_POINT.x;
 				}
-				var adjustedGap:Number = this._gap == Number.POSITIVE_INFINITY ? Math.min(this._paddingLeft, this._paddingRight) : this._gap;
 				if(this._layoutOrder == LAYOUT_ORDER_LABEL_ACCESSORY_ICON)
 				{
-					newWidth = this.addAccessoryWidth(newWidth, adjustedGap);
-					newWidth = this.addIconWidth(newWidth, adjustedGap);
+					newWidth = this.addAccessoryWidth(newWidth);
+					newWidth = this.addIconWidth(newWidth);
 				}
 				else
 				{
-					newWidth = this.addIconWidth(newWidth, adjustedGap);
-					newWidth = this.addAccessoryWidth(newWidth, adjustedGap);
+					newWidth = this.addIconWidth(newWidth);
+					newWidth = this.addAccessoryWidth(newWidth);
 				}
 				newWidth += this._paddingLeft + this._paddingRight;
-				if(isNaN(newWidth))
+				if(newWidth != newWidth) //isNaN
 				{
 					newWidth = this._originalSkinWidth;
+					if(newWidth != newWidth) //isNaN
+					{
+						newWidth = 0;
+					}
 				}
-				else if(!isNaN(this._originalSkinWidth))
+				else if(this._originalSkinWidth == this._originalSkinWidth) //!isNaN
 				{
-					newWidth = Math.max(newWidth, this._originalSkinWidth);
-				}
-				if(isNaN(newWidth))
-				{
-					newWidth = 0;
+					if(this._originalSkinWidth > newWidth)
+					{
+						newWidth = this._originalSkinWidth;
+					}
 				}
 			}
 
@@ -1430,31 +3143,34 @@ package feathers.controls.renderers
 				{
 					newHeight = HELPER_POINT.y;
 				}
-				adjustedGap = this._gap == Number.POSITIVE_INFINITY ? Math.min(this._paddingTop, this._paddingBottom) : this._gap;
 				if(this._layoutOrder == LAYOUT_ORDER_LABEL_ACCESSORY_ICON)
 				{
-					newHeight = this.addAccessoryHeight(newHeight, adjustedGap);
-					newHeight = this.addIconHeight(newHeight, adjustedGap);
+					newHeight = this.addAccessoryHeight(newHeight);
+					newHeight = this.addIconHeight(newHeight);
 				}
 				else
 				{
-					newHeight = this.addIconHeight(newHeight, adjustedGap);
-					newHeight = this.addAccessoryHeight(newHeight, adjustedGap);
+					newHeight = this.addIconHeight(newHeight);
+					newHeight = this.addAccessoryHeight(newHeight);
 				}
 				newHeight += this._paddingTop + this._paddingBottom;
-				if(isNaN(newHeight))
+				if(newHeight != newHeight) //isNaN
 				{
 					newHeight = this._originalSkinHeight;
+					if(newHeight != newHeight) //isNaN
+					{
+						newHeight = 0;
+					}
 				}
-				else if(!isNaN(this._originalSkinHeight))
+				else if(this._originalSkinHeight == this._originalSkinHeight) //!isNaN
 				{
-					newHeight = Math.max(newHeight, this._originalSkinHeight);
-				}
-				if(isNaN(newHeight))
-				{
-					newHeight = 0;
+					if(this._originalSkinHeight > newHeight)
+					{
+						newHeight = this._originalSkinHeight;
+					}
 				}
 			}
+			this._ignoreAccessoryResizes = oldIgnoreAccessoryResizes;
 
 			return this.setSizeInternal(newWidth, newHeight, false);
 		}
@@ -1462,19 +3178,40 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
-		protected function addIconWidth(width:Number, gap:Number):Number
+		protected function addIconWidth(width:Number):Number
 		{
-			if(!this.currentIcon || isNaN(this.currentIcon.width))
+			if(!this.currentIcon)
 			{
 				return width;
 			}
+			var iconWidth:Number = this.currentIcon.width;
+			if(iconWidth != iconWidth) //isNaN
+			{
+				return width;
+			}
+
+			var hasPreviousItem:Boolean = width == width; //!isNaN
+			if(!hasPreviousItem)
+			{
+				width = 0;
+			}
+
 			if(this._iconPosition == ICON_POSITION_LEFT || this._iconPosition == ICON_POSITION_LEFT_BASELINE || this._iconPosition == ICON_POSITION_RIGHT || this._iconPosition == ICON_POSITION_RIGHT_BASELINE)
 			{
-				width += this.currentIcon.width + gap;
+				if(hasPreviousItem)
+				{
+					var adjustedGap:Number = this._gap;
+					if(this._gap == Number.POSITIVE_INFINITY)
+					{
+						adjustedGap = this._minGap;
+					}
+					width += adjustedGap;
+				}
+				width += iconWidth;
 			}
-			else
+			else if(iconWidth > width)
 			{
-				width = Math.max(width, this.currentIcon.width);
+				width = iconWidth;
 			}
 			return width;
 		}
@@ -1482,25 +3219,51 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
-		protected function addAccessoryWidth(width:Number, gap:Number):Number
+		protected function addAccessoryWidth(width:Number):Number
 		{
-			if(!this.accessory || isNaN(this.accessory.width))
+			if(!this.accessory)
 			{
 				return width;
+			}
+			var accessoryWidth:Number = this.accessory.width;
+			if(accessoryWidth != accessoryWidth)
+			{
+				return width;
+			}
+
+			var hasPreviousItem:Boolean = width == width; //!isNaN;
+			if(!hasPreviousItem)
+			{
+				width = 0;
 			}
 
 			if(this._accessoryPosition == ACCESSORY_POSITION_LEFT || this._accessoryPosition == ACCESSORY_POSITION_RIGHT)
 			{
-				var adjustedAccessoryGap:Number = isNaN(this._accessoryGap) ? gap : this._accessoryGap;
-				if(adjustedAccessoryGap == Number.POSITIVE_INFINITY)
+				if(hasPreviousItem)
 				{
-					adjustedAccessoryGap = Math.min(this._paddingLeft, this._paddingRight, this._gap);
+					var adjustedAccessoryGap:Number = this._accessoryGap;
+					if(adjustedAccessoryGap != adjustedAccessoryGap) //isNaN
+					{
+						adjustedAccessoryGap = this._gap;
+					}
+					if(adjustedAccessoryGap == Number.POSITIVE_INFINITY)
+					{
+						if(this._minAccessoryGap != this._minAccessoryGap) //isNaN
+						{
+							adjustedAccessoryGap = this._minGap;
+						}
+						else
+						{
+							adjustedAccessoryGap = this._minAccessoryGap;
+						}
+					}
+					width += adjustedAccessoryGap;
 				}
-				width += this.accessory.width + adjustedAccessoryGap;
+				width += accessoryWidth;
 			}
-			else
+			else if(accessoryWidth > width)
 			{
-				width = Math.max(width, this.accessory.width);
+				width = accessoryWidth;
 			}
 			return width;
 		}
@@ -1509,19 +3272,40 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
-		protected function addIconHeight(height:Number, gap:Number):Number
+		protected function addIconHeight(height:Number):Number
 		{
-			if(!this.currentIcon || isNaN(this.currentIcon.height))
+			if(!this.currentIcon)
 			{
 				return height;
 			}
+			var iconHeight:Number = this.currentIcon.height;
+			if(iconHeight != iconHeight) //isNaN
+			{
+				return height;
+			}
+
+			var hasPreviousItem:Boolean = height == height; //!isNaN
+			if(!hasPreviousItem)
+			{
+				height = 0;
+			}
+
 			if(this._iconPosition == ICON_POSITION_TOP || this._iconPosition == ICON_POSITION_BOTTOM)
 			{
-				height += this.currentIcon.height + gap;
+				if(hasPreviousItem)
+				{
+					var adjustedGap:Number = this._gap;
+					if(this._gap == Number.POSITIVE_INFINITY)
+					{
+						adjustedGap = this._minGap;
+					}
+					height += adjustedGap;
+				}
+				height += iconHeight;
 			}
-			else
+			else if(iconHeight > height)
 			{
-				height = Math.max(height, this.currentIcon.height);
+				height = iconHeight;
 			}
 			return height;
 		}
@@ -1529,46 +3313,121 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
-		protected function addAccessoryHeight(height:Number, gap:Number):Number
+		protected function addAccessoryHeight(height:Number):Number
 		{
-			if(!this.accessory || isNaN(this.accessory.height))
+			if(!this.accessory)
 			{
 				return height;
 			}
+			var accessoryHeight:Number = this.accessory.height;
+			if(accessoryHeight != accessoryHeight) //isNaN
+			{
+				return height;
+			}
+
+			var hasPreviousItem:Boolean = height == height; //!isNaN
+			if(!hasPreviousItem)
+			{
+				height = 0;
+			}
+
 			if(this._accessoryPosition == ACCESSORY_POSITION_TOP || this._accessoryPosition == ACCESSORY_POSITION_BOTTOM)
 			{
-				var adjustedAccessoryGap:Number = isNaN(this._accessoryGap) ? gap : this._accessoryGap;
-				if(adjustedAccessoryGap == Number.POSITIVE_INFINITY)
+				if(hasPreviousItem)
 				{
-					adjustedAccessoryGap = Math.min(this._paddingTop, this._paddingBottom, this._gap);
+					var adjustedAccessoryGap:Number = this._accessoryGap;
+					if(adjustedAccessoryGap != adjustedAccessoryGap)
+					{
+						adjustedAccessoryGap =  this._gap;
+					}
+					if(adjustedAccessoryGap == Number.POSITIVE_INFINITY)
+					{
+						if(this._minAccessoryGap != this._minAccessoryGap)
+						{
+							adjustedAccessoryGap = this._minGap;
+						}
+						else
+						{
+							adjustedAccessoryGap = this._minAccessoryGap;
+						}
+					}
+					height += adjustedAccessoryGap;
 				}
-				height += this.accessory.height + adjustedAccessoryGap;
+				height += accessoryHeight;
 			}
-			else
+			else if(accessoryHeight > height)
 			{
-				height = Math.max(height, this.accessory.height);
+				height = accessoryHeight;
 			}
 			return height;
 		}
 
 		/**
-		 * @private
+		 * Updates the renderer to display the item's data. Override this
+		 * function to pass data to sub-components and react to data changes.
+		 *
+		 * <p>Don't forget to handle the case where the data is <code>null</code>.</p>
 		 */
 		protected function commitData():void
 		{
-			if(this._owner)
+			if(this._data && this._owner)
 			{
 				if(this._itemHasLabel)
 				{
 					this._label = this.itemToLabel(this._data);
+					//we don't need to invalidate because the label setter
+					//uses the same data invalidation flag that triggered this
+					//call to commitData(), so we're already properly invalid.
+				}
+				if(this._itemHasSkin)
+				{
+					var newSkin:DisplayObject = this.itemToSkin(this._data);
+					this._skinIsFromItem = newSkin != null;
+					this.replaceSkin(newSkin);
+				}
+				else if(this._skinIsFromItem)
+				{
+					this._skinIsFromItem = false;
+					this.replaceSkin(null);
 				}
 				if(this._itemHasIcon)
 				{
-					const newIcon:DisplayObject = this.itemToIcon(this._data);
+					var newIcon:DisplayObject = this.itemToIcon(this._data);
+					this._iconIsFromItem = newIcon != null;
 					this.replaceIcon(newIcon);
 				}
-				const newAccessory:DisplayObject = this.itemToAccessory(this._data);
-				this.replaceAccessory(newAccessory);
+				else if(this._iconIsFromItem)
+				{
+					this._iconIsFromItem = false;
+					this.replaceIcon(null);
+				}
+				if(this._itemHasAccessory)
+				{
+					var newAccessory:DisplayObject = this.itemToAccessory(this._data);
+					this._accessoryIsFromItem = newAccessory != null;
+					this.replaceAccessory(newAccessory);
+				}
+				else if(this._accessoryIsFromItem)
+				{
+					this._accessoryIsFromItem = false;
+					this.replaceAccessory(null);
+				}
+				if(this._itemHasSelectable)
+				{
+					this._isToggle = this._explicitIsToggle && this.itemToSelectable(this._data);
+				}
+				else
+				{
+					this._isToggle = this._explicitIsToggle;
+				}
+				if(this._itemHasEnabled)
+				{
+					this.refreshIsEnabled(this._explicitIsEnabled && this.itemToEnabled(this._data));
+				}
+				else
+				{
+					this.refreshIsEnabled(this._explicitIsEnabled);
+				}
 			}
 			else
 			{
@@ -1576,13 +3435,28 @@ package feathers.controls.renderers
 				{
 					this._label = "";
 				}
-				if(this._itemHasIcon)
+				if(this._itemHasIcon || this._iconIsFromItem)
 				{
+					this._iconIsFromItem = false;
 					this.replaceIcon(null);
 				}
-				if(this.accessory)
+				if(this._itemHasSkin || this._skinIsFromItem)
 				{
+					this._skinIsFromItem = false;
+					this.replaceSkin(null);
+				}
+				if(this._itemHasAccessory || this._accessoryIsFromItem)
+				{
+					this._accessoryIsFromItem = false;
 					this.replaceAccessory(null);
+				}
+				if(this._itemHasSelectable)
+				{
+					this._isToggle = this._explicitIsToggle;
+				}
+				if(this._itemHasEnabled)
+				{
+					this.refreshIsEnabled(this._explicitIsEnabled);
 				}
 			}
 		}
@@ -1590,17 +3464,83 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
+		protected function refreshIsEnabled(value:Boolean):void
+		{
+			if(this._isEnabled == value)
+			{
+				return;
+			}
+			this._isEnabled = value;
+			if(!this._isEnabled)
+			{
+				this.touchable = false;
+				this._currentState = STATE_DISABLED;
+				this.touchPointID = -1;
+			}
+			else
+			{
+				//might be in another state for some reason
+				//let's only change to up if needed
+				if(this._currentState == STATE_DISABLED)
+				{
+					this._currentState = STATE_UP;
+				}
+				this.touchable = true;
+			}
+			this.setInvalidationFlag(INVALIDATION_FLAG_STATE);
+		}
+
+		/**
+		 * @private
+		 */
 		protected function replaceIcon(newIcon:DisplayObject):void
 		{
-			if(this.iconImage && this.iconImage != newIcon)
+			if(this.iconLoader && this.iconLoader != newIcon)
 			{
-				this.iconImage.removeEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
-				this.iconImage.removeEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
-				this.iconImage.dispose();
-				this.iconImage = null;
+				this.iconLoader.removeEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
+				this.iconLoader.removeEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
+				this.iconLoader.dispose();
+				this.iconLoader = null;
 			}
 
-			this.defaultIcon = newIcon;
+			if(this.iconLabel && this.iconLabel != newIcon)
+			{
+				//we can dispose this one, though, since we created it
+				this.iconLabel.dispose();
+				this.iconLabel = null;
+			}
+
+			if(this._itemHasIcon && this.currentIcon && this.currentIcon != newIcon && this.currentIcon.parent == this)
+			{
+				//the icon is created using the data provider, and it is not
+				//created inside this class, so it is not our responsibility to
+				//dispose the icon. if we dispose it, it may break something.
+				this.currentIcon.removeFromParent(false);
+				this.currentIcon = null;
+			}
+			//we're using currentIcon above, but we're emulating calling the
+			//defaultIcon setter here. the Button class sets the currentIcon
+			//elsewhere, so we want to take advantage of that exisiting code.
+
+			//we're not calling the defaultIcon setter directly because we're in
+			//the middle of validating, and it will just invalidate, which will
+			//require another validation later. we want the Button class to
+			//process the new icon immediately when we call super.draw().
+			if(this._iconSelector.defaultValue != newIcon)
+			{
+				this._iconSelector.defaultValue = newIcon;
+				//we don't want this taking precedence over our icon from the
+				//data provider.
+				this._stateToIconFunction = null;
+				//we don't need to do a full invalidation. the superclass will
+				//correctly see this flag when we call super.draw().
+				this.setInvalidationFlag(INVALIDATION_FLAG_STYLES);
+			}
+
+			if(this.iconLoader)
+			{
+				this.iconLoader.delayTextureCreation = this._delayTextureCreationOnScroll && this._owner.isScrolling;
+			}
 		}
 
 		/**
@@ -1615,13 +3555,17 @@ package feathers.controls.renderers
 
 			if(this.accessory)
 			{
+				this.accessory.removeEventListener(FeathersEventType.RESIZE, accessory_resizeHandler);
 				this.accessory.removeEventListener(TouchEvent.TOUCH, accessory_touchHandler);
 
-				//the accessory may have come from outside of this class. it's
-				//up to that code to dispose of the accessory. in fact, if we
-				//disposed of it here, we will probably screw something up, so
-				//let's just remove it.
-				this.accessory.removeFromParent();
+				if(this.accessory.parent == this)
+				{
+					//the accessory may have come from outside of this class. it's
+					//up to that code to dispose of the accessory. in fact, if we
+					//disposed of it here, we will probably screw something up, so
+					//let's just remove it.
+					this.accessory.removeFromParent(false);
+				}
 			}
 
 			if(this.accessoryLabel && this.accessoryLabel != newAccessory)
@@ -1631,44 +3575,122 @@ package feathers.controls.renderers
 				this.accessoryLabel = null;
 			}
 
-			if(this.accessoryImage && this.accessoryImage != newAccessory)
+			if(this.accessoryLoader && this.accessoryLoader != newAccessory)
 			{
-				this.accessoryImage.removeEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
-				this.accessoryImage.removeEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
+				this.accessoryLoader.removeEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
+				this.accessoryLoader.removeEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
 
 				//same ability to dispose here
-				this.accessoryImage.dispose();
-				this.accessoryImage = null;
+				this.accessoryLoader.dispose();
+				this.accessoryLoader = null;
 			}
 
 			this.accessory = newAccessory;
 
 			if(this.accessory)
 			{
-				if(this.accessory is IFeathersControl && !(this.accessory is BitmapFontTextRenderer))
+				if(this.accessory is IFeathersControl)
 				{
-					this.accessory.addEventListener(TouchEvent.TOUCH, accessory_touchHandler);
+					if(!(this.accessory is BitmapFontTextRenderer))
+					{
+						this.accessory.addEventListener(TouchEvent.TOUCH, accessory_touchHandler);
+					}
+					this.accessory.addEventListener(FeathersEventType.RESIZE, accessory_resizeHandler);
 				}
 				this.addChild(this.accessory);
+			}
+			
+			if(this.accessoryLoader)
+			{
+				this.accessoryLoader.delayTextureCreation = this._delayTextureCreationOnScroll && this._owner.isScrolling;
 			}
 		}
 
 		/**
 		 * @private
 		 */
-		protected function refreshAccessoryLabelStyles():void
+		protected function replaceSkin(newSkin:DisplayObject):void
 		{
-			if(!this.accessoryLabel)
+			if(this.skinLoader && this.skinLoader != newSkin)
 			{
-				return;
+				this.skinLoader.removeEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
+				this.skinLoader.removeEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
+				this.skinLoader.dispose();
+				this.skinLoader = null;
 			}
-			const displayAccessoryLabel:DisplayObject = DisplayObject(this.accessoryLabel);
-			for(var propertyName:String in this._accessoryLabelProperties)
+
+			if(this._itemHasSkin && this.currentSkin && this.currentSkin != newSkin && this.currentSkin.parent == this)
 			{
-				if(displayAccessoryLabel.hasOwnProperty(propertyName))
+				//the icon is created using the data provider, and it is not
+				//created inside this class, so it is not our responsibility to
+				//dispose the icon. if we dispose it, it may break something.
+				this.currentSkin.removeFromParent(false);
+				this.currentSkin = null;
+			}
+			//we're using currentIcon above, but we're emulating calling the
+			//defaultIcon setter here. the Button class sets the currentIcon
+			//elsewhere, so we want to take advantage of that exisiting code.
+
+			//we're not calling the defaultSkin setter directly because we're in
+			//the middle of validating, and it will just invalidate, which will
+			//require another validation later. we want the Button class to
+			//process the new skin immediately when we call super.draw().
+			if(this._skinSelector.defaultValue != newSkin)
+			{
+				this._skinSelector.defaultValue = newSkin;
+				//we don't want this taking precedence over our skin from the
+				//data provider.
+				this._stateToSkinFunction = null;
+				//we don't need to do a full invalidation. the superclass will
+				//correctly see this flag when we call super.draw().
+				this.setInvalidationFlag(INVALIDATION_FLAG_STYLES);
+			}
+
+			if(this.skinLoader)
+			{
+				this.skinLoader.delayTextureCreation = this._delayTextureCreationOnScroll && this._owner.isScrolling;
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		override protected function refreshIcon():void
+		{
+			super.refreshIcon();
+			if(this.iconLabel)
+			{
+				var displayIconLabel:DisplayObject = DisplayObject(this.iconLabel);
+				for(var propertyName:String in this._iconLabelProperties)
 				{
-					var propertyValue:Object = this._accessoryLabelProperties[propertyName];
-					displayAccessoryLabel[propertyName] = propertyValue;
+					if(displayIconLabel.hasOwnProperty(propertyName))
+					{
+						var propertyValue:Object = this._iconLabelProperties[propertyName];
+						displayIconLabel[propertyName] = propertyValue;
+					}
+				}
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function refreshAccessory():void
+		{
+			if(this.accessory is IFeathersControl)
+			{
+				IFeathersControl(this.accessory).isEnabled = this._isEnabled;
+			}
+			if(this.accessoryLabel)
+			{
+				var displayAccessoryLabel:DisplayObject = DisplayObject(this.accessoryLabel);
+				for(var propertyName:String in this._accessoryLabelProperties)
+				{
+					if(displayAccessoryLabel.hasOwnProperty(propertyName))
+					{
+						var propertyValue:Object = this._accessoryLabelProperties[propertyName];
+						displayAccessoryLabel[propertyName] = propertyValue;
+					}
 				}
 			}
 		}
@@ -1678,13 +3700,27 @@ package feathers.controls.renderers
 		 */
 		protected function refreshIconSource(source:Object):void
 		{
-			if(!this.iconImage)
+			if(!this.iconLoader)
 			{
-				this.iconImage = this._iconLoaderFactory();
-				this.iconImage.addEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
-				this.iconImage.addEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
+				this.iconLoader = this._iconLoaderFactory();
+				this.iconLoader.addEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
+				this.iconLoader.addEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
 			}
-			this.iconImage.source = source;
+			this.iconLoader.source = source;
+		}
+
+		/**
+		 * @private
+		 */
+		protected function refreshIconLabel(label:String):void
+		{
+			if(!this.iconLabel)
+			{
+				var factory:Function = this._iconLabelFactory != null ? this._iconLabelFactory : FeathersControl.defaultTextRendererFactory;
+				this.iconLabel = ITextRenderer(factory());
+				this.iconLabel.styleNameList.add(this.iconLabelName);
+			}
+			this.iconLabel.text = label;
 		}
 
 		/**
@@ -1692,13 +3728,13 @@ package feathers.controls.renderers
 		 */
 		protected function refreshAccessorySource(source:Object):void
 		{
-			if(!this.accessoryImage)
+			if(!this.accessoryLoader)
 			{
-				this.accessoryImage = this._accessoryLoaderFactory();
-				this.accessoryImage.addEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
-				this.accessoryImage.addEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
+				this.accessoryLoader = this._accessoryLoaderFactory();
+				this.accessoryLoader.addEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
+				this.accessoryLoader.addEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
 			}
-			this.accessoryImage.source = source;
+			this.accessoryLoader.source = source;
 		}
 
 		/**
@@ -1708,9 +3744,9 @@ package feathers.controls.renderers
 		{
 			if(!this.accessoryLabel)
 			{
-				const factory:Function = this._accessoryLabelFactory != null ? this._accessoryLabelFactory : FeathersControl.defaultTextRendererFactory;
+				var factory:Function = this._accessoryLabelFactory != null ? this._accessoryLabelFactory : FeathersControl.defaultTextRendererFactory;
 				this.accessoryLabel = ITextRenderer(factory());
-				this.accessoryLabel.nameList.add(this.accessoryLabelName);
+				this.accessoryLabel.styleNameList.add(this.accessoryLabelName);
 			}
 			this.accessoryLabel.text = label;
 		}
@@ -1718,32 +3754,43 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
+		protected function refreshSkinSource(source:Object):void
+		{
+			if(!this.skinLoader)
+			{
+				this.skinLoader = this._skinLoaderFactory();
+				this.skinLoader.addEventListener(Event.COMPLETE, loader_completeOrErrorHandler);
+				this.skinLoader.addEventListener(FeathersEventType.ERROR, loader_completeOrErrorHandler);
+			}
+			this.skinLoader.source = source;
+		}
+
+		/**
+		 * @private
+		 */
 		override protected function layoutContent():void
 		{
+			var oldIgnoreAccessoryResizes:Boolean = this._ignoreAccessoryResizes;
+			this._ignoreAccessoryResizes = true;
 			this.refreshMaxLabelWidth(false);
 			if(this._label)
 			{
 				this.labelTextRenderer.validate();
 				const labelRenderer:DisplayObject = DisplayObject(this.labelTextRenderer);
 			}
-			if(this.accessory is IFeathersControl)
+			var iconIsInLayout:Boolean = this.currentIcon && this._iconPosition != ICON_POSITION_MANUAL;
+			var accessoryIsInLayout:Boolean = this.accessory && this._accessoryPosition != ACCESSORY_POSITION_MANUAL;
+			var accessoryGap:Number = this._accessoryGap;
+			if(accessoryGap != accessoryGap) //isNaN
 			{
-				IFeathersControl(this.accessory).validate();
+				accessoryGap = this._gap;
 			}
-			if(this.currentIcon is IFeathersControl)
-			{
-				IFeathersControl(this.currentIcon).validate();
-			}
-
-			const iconIsInLayout:Boolean = this.currentIcon && this._iconPosition != ICON_POSITION_MANUAL;
-			const accessoryIsInLayout:Boolean = this.accessory && this._accessoryPosition != ACCESSORY_POSITION_MANUAL;
-			const accessoryGap:Number = isNaN(this._accessoryGap) ? this._gap : this._accessoryGap;
 			if(this._label && iconIsInLayout && accessoryIsInLayout)
 			{
 				this.positionSingleChild(labelRenderer);
 				if(this._layoutOrder == LAYOUT_ORDER_LABEL_ACCESSORY_ICON)
 				{
-					this.positionRelativeToOthers(this.accessory, labelRenderer, null, this._accessoryPosition, accessoryGap);
+					this.positionRelativeToOthers(this.accessory, labelRenderer, null, this._accessoryPosition, accessoryGap, null, 0);
 					var iconPosition:String = this._iconPosition;
 					if(iconPosition == ICON_POSITION_LEFT_BASELINE)
 					{
@@ -1753,12 +3800,12 @@ package feathers.controls.renderers
 					{
 						iconPosition = ICON_POSITION_RIGHT;
 					}
-					this.positionRelativeToOthers(this.currentIcon, labelRenderer, this.accessory, iconPosition, this._gap);
+					this.positionRelativeToOthers(this.currentIcon, labelRenderer, this.accessory, iconPosition, this._gap, this._accessoryPosition, accessoryGap);
 				}
 				else
 				{
 					this.positionLabelAndIcon();
-					this.positionRelativeToOthers(this.accessory, labelRenderer, this.currentIcon, this._accessoryPosition, accessoryGap);
+					this.positionRelativeToOthers(this.accessory, labelRenderer, this.currentIcon, this._accessoryPosition, accessoryGap, this._iconPosition, this._gap);
 				}
 			}
 			else if(this._label)
@@ -1772,7 +3819,7 @@ package feathers.controls.renderers
 				}
 				else if(accessoryIsInLayout)
 				{
-					this.positionRelativeToOthers(this.accessory, labelRenderer, null, this._accessoryPosition, accessoryGap);
+					this.positionRelativeToOthers(this.accessory, labelRenderer, null, this._accessoryPosition, accessoryGap, null, 0);
 				}
 			}
 			else if(iconIsInLayout)
@@ -1780,7 +3827,7 @@ package feathers.controls.renderers
 				this.positionSingleChild(this.currentIcon);
 				if(accessoryIsInLayout)
 				{
-					this.positionRelativeToOthers(this.accessory, this.currentIcon, null, this._accessoryPosition, accessoryGap);
+					this.positionRelativeToOthers(this.accessory, this.currentIcon, null, this._accessoryPosition, accessoryGap, null, 0);
 				}
 			}
 			else if(accessoryIsInLayout)
@@ -1813,6 +3860,7 @@ package feathers.controls.renderers
 				this.labelTextRenderer.x += this._labelOffsetX;
 				this.labelTextRenderer.y += this._labelOffsetY;
 			}
+			this._ignoreAccessoryResizes = oldIgnoreAccessoryResizes;
 		}
 
 		/**
@@ -1820,39 +3868,140 @@ package feathers.controls.renderers
 		 */
 		override protected function refreshMaxLabelWidth(forMeasurement:Boolean):void
 		{
-			if(!this._label)
-			{
-				return;
-			}
 			var calculatedWidth:Number = this.actualWidth;
 			if(forMeasurement)
 			{
 				calculatedWidth = isNaN(this.explicitWidth) ? this._maxWidth : this.explicitWidth;
 			}
-			if(this.accessory is IFeathersControl)
+			calculatedWidth -= (this._paddingLeft + this._paddingRight);
+
+			var adjustedGap:Number = this._gap;
+			if(adjustedGap == Number.POSITIVE_INFINITY)
 			{
-				IFeathersControl(this.accessory).validate();
+				adjustedGap = this._minGap;
 			}
-			const adjustedGap:Number = this._gap == Number.POSITIVE_INFINITY ? Math.min(this._paddingLeft, this._paddingRight) : this._gap;
-			if(this.currentIcon && (this._iconPosition == ICON_POSITION_LEFT || this._iconPosition == ICON_POSITION_LEFT_BASELINE ||
-				this._iconPosition == ICON_POSITION_RIGHT || this._iconPosition == ICON_POSITION_RIGHT_BASELINE))
+			var adjustedAccessoryGap:Number = this._accessoryGap;
+			if(adjustedAccessoryGap != adjustedAccessoryGap) //isNaN
 			{
-				calculatedWidth -= (adjustedGap + this.currentIcon.width);
+				adjustedAccessoryGap = this._gap;
+			}
+			if(adjustedAccessoryGap == Number.POSITIVE_INFINITY)
+			{
+				adjustedAccessoryGap = this._minAccessoryGap;
+				if(adjustedAccessoryGap != adjustedAccessoryGap) //isNaN
+				{
+					adjustedAccessoryGap = this._minGap;
+				}
 			}
 
-			if(this.accessory && (this._accessoryPosition == ACCESSORY_POSITION_LEFT || this._accessoryPosition == ACCESSORY_POSITION_RIGHT))
-			{
-				const accessoryGap:Number = (isNaN(this._accessoryGap) || this._accessoryGap == Number.POSITIVE_INFINITY) ? adjustedGap : this._accessoryGap;
-				calculatedWidth -= (accessoryGap + this.accessory.width);
-			}
+			var hasIconToLeftOrRight:Boolean = this.currentIcon && (this._iconPosition == ICON_POSITION_LEFT || this._iconPosition == ICON_POSITION_LEFT_BASELINE ||
+				this._iconPosition == ICON_POSITION_RIGHT || this._iconPosition == ICON_POSITION_RIGHT_BASELINE);
+			var hasAccessoryToLeftOrRight:Boolean = this.accessory && (this._accessoryPosition == ACCESSORY_POSITION_LEFT || this._accessoryPosition == ACCESSORY_POSITION_RIGHT);
 
-			this.labelTextRenderer.maxWidth = calculatedWidth - this._paddingLeft - this._paddingRight;
+			if(this.accessoryLabel)
+			{
+				var iconAffectsAccessoryLabelMaxWidth:Boolean = hasIconToLeftOrRight && (hasAccessoryToLeftOrRight || this._layoutOrder == LAYOUT_ORDER_LABEL_ACCESSORY_ICON);
+				if(this.iconLabel)
+				{
+					this.iconLabel.maxWidth = calculatedWidth - adjustedGap;
+					if(this.iconLabel.maxWidth < 0)
+					{
+						this.iconLabel.maxWidth = 0;
+					}
+				}
+				if(this.currentIcon is IValidating)
+				{
+					IValidating(this.currentIcon).validate();
+				}
+				if(iconAffectsAccessoryLabelMaxWidth)
+				{
+					calculatedWidth -= (this.currentIcon.width + adjustedGap);
+				}
+				if(hasAccessoryToLeftOrRight)
+				{
+					calculatedWidth -= adjustedAccessoryGap;
+				}
+				if(calculatedWidth < 0)
+				{
+					calculatedWidth = 0;
+				}
+				this.accessoryLabel.maxWidth = calculatedWidth;
+				if(this.currentIcon && !iconAffectsAccessoryLabelMaxWidth)
+				{
+					calculatedWidth -= (this.currentIcon.width + adjustedGap);
+				}
+				if(this.accessory is IValidating)
+				{
+					IValidating(this.accessory).validate();
+				}
+				if(hasAccessoryToLeftOrRight)
+				{
+					calculatedWidth -= this.accessory.width;
+				}
+			}
+			else if(this.iconLabel)
+			{
+				var accessoryAffectsIconLabelMaxWidth:Boolean = hasAccessoryToLeftOrRight && (hasIconToLeftOrRight || this._layoutOrder == LAYOUT_ORDER_LABEL_ICON_ACCESSORY);
+				if(this.accessory is IValidating)
+				{
+					IValidating(this.accessory).validate();
+				}
+				if(accessoryAffectsIconLabelMaxWidth)
+				{
+					calculatedWidth -= (adjustedAccessoryGap + this.accessory.width);
+				}
+				if(hasIconToLeftOrRight)
+				{
+					calculatedWidth -= adjustedGap;
+				}
+				if(calculatedWidth < 0)
+				{
+					calculatedWidth = 0;
+				}
+				this.iconLabel.maxWidth = calculatedWidth;
+				if(this.accessory && !accessoryAffectsIconLabelMaxWidth)
+				{
+					calculatedWidth -= (adjustedAccessoryGap + this.accessory.width);
+				}
+				if(this.currentIcon is IValidating)
+				{
+					IValidating(this.currentIcon).validate();
+				}
+				if(hasIconToLeftOrRight)
+				{
+					calculatedWidth -= this.currentIcon.width;
+				}
+			}
+			else
+			{
+				if(this.currentIcon is IValidating)
+				{
+					IValidating(this.currentIcon).validate();
+				}
+				if(hasIconToLeftOrRight)
+				{
+					calculatedWidth -= (adjustedGap + this.currentIcon.width);
+				}
+				if(this.accessory is IValidating)
+				{
+					IValidating(this.accessory).validate();
+				}
+				if(hasAccessoryToLeftOrRight)
+				{
+					calculatedWidth -= (adjustedAccessoryGap + this.accessory.width);
+				}
+			}
+			if(calculatedWidth < 0)
+			{
+				calculatedWidth = 0;
+			}
+			this.labelTextRenderer.maxWidth = calculatedWidth;
 		}
 
 		/**
 		 * @private
 		 */
-		protected function positionRelativeToOthers(object:DisplayObject, relativeTo:DisplayObject, relativeTo2:DisplayObject, position:String, gap:Number):void
+		protected function positionRelativeToOthers(object:DisplayObject, relativeTo:DisplayObject, relativeTo2:DisplayObject, position:String, gap:Number, otherPosition:String, otherGap:Number):void
 		{
 			const relativeToX:Number = relativeTo2 ? Math.min(relativeTo.x, relativeTo2.x) : relativeTo.x;
 			const relativeToY:Number = relativeTo2 ? Math.min(relativeTo.y, relativeTo2.y) : relativeTo.y;
@@ -1877,6 +4026,10 @@ package feathers.controls.renderers
 					{
 						newRelativeToY += (object.height + gap) / 2;
 					}
+					if(relativeTo2)
+					{
+						newRelativeToY = Math.max(newRelativeToY, this._paddingTop + object.height + gap);
+					}
 					object.y = newRelativeToY - object.height - gap;
 				}
 			}
@@ -1896,6 +4049,10 @@ package feathers.controls.renderers
 					else if(this._horizontalAlign == HORIZONTAL_ALIGN_CENTER)
 					{
 						newRelativeToX -= (object.width + gap) / 2;
+					}
+					if(relativeTo2)
+					{
+						newRelativeToX = Math.min(newRelativeToX, this.actualWidth - this._paddingRight - object.width - relativeToWidth - gap);
 					}
 					object.x = newRelativeToX + relativeToWidth + gap;
 				}
@@ -1917,6 +4074,10 @@ package feathers.controls.renderers
 					{
 						newRelativeToY -= (object.height + gap) / 2;
 					}
+					if(relativeTo2)
+					{
+						newRelativeToY = Math.min(newRelativeToY, this.actualHeight - this._paddingBottom - object.height - relativeToHeight - gap);
+					}
 					object.y = newRelativeToY + relativeToHeight + gap;
 				}
 			}
@@ -1937,18 +4098,73 @@ package feathers.controls.renderers
 					{
 						newRelativeToX += (gap + object.width) / 2;
 					}
+					if(relativeTo2)
+					{
+						newRelativeToX = Math.max(newRelativeToX, this._paddingLeft + object.width + gap);
+					}
 					object.x = newRelativeToX - gap - object.width;
 				}
 			}
 
 			var offsetX:Number = newRelativeToX - relativeToX;
 			var offsetY:Number = newRelativeToY - relativeToY;
-			relativeTo.x += offsetX;
-			relativeTo.y += offsetY;
+			if(!relativeTo2 || otherGap != Number.POSITIVE_INFINITY || !(
+				(position == ACCESSORY_POSITION_TOP && otherPosition == ACCESSORY_POSITION_TOP) ||
+				(position == ACCESSORY_POSITION_RIGHT && otherPosition == ACCESSORY_POSITION_RIGHT) ||
+				(position == ACCESSORY_POSITION_BOTTOM && otherPosition == ACCESSORY_POSITION_BOTTOM) ||
+				(position == ACCESSORY_POSITION_LEFT && otherPosition == ACCESSORY_POSITION_LEFT)
+			))
+			{
+				relativeTo.x += offsetX;
+				relativeTo.y += offsetY;
+			}
 			if(relativeTo2)
 			{
-				relativeTo2.x += offsetX;
-				relativeTo2.y += offsetY;
+				if(otherGap != Number.POSITIVE_INFINITY || !(
+					(position == ACCESSORY_POSITION_LEFT && otherPosition == ACCESSORY_POSITION_RIGHT) ||
+					(position == ACCESSORY_POSITION_RIGHT && otherPosition == ACCESSORY_POSITION_LEFT) ||
+					(position == ACCESSORY_POSITION_TOP && otherPosition == ACCESSORY_POSITION_BOTTOM) ||
+					(position == ACCESSORY_POSITION_BOTTOM && otherPosition == ACCESSORY_POSITION_TOP)
+				))
+				{
+					relativeTo2.x += offsetX;
+					relativeTo2.y += offsetY;
+				}
+				if(gap == Number.POSITIVE_INFINITY && otherGap == Number.POSITIVE_INFINITY)
+				{
+					if(position == ACCESSORY_POSITION_RIGHT && otherPosition == ACCESSORY_POSITION_LEFT)
+					{
+						relativeTo.x = relativeTo2.x + (object.x - relativeTo2.x + relativeTo2.width - relativeTo.width) / 2;
+					}
+					else if(position == ACCESSORY_POSITION_LEFT && otherPosition == ACCESSORY_POSITION_RIGHT)
+					{
+						relativeTo.x = object.x + (relativeTo2.x - object.x + object.width - relativeTo.width) / 2;
+					}
+					else if(position == ACCESSORY_POSITION_RIGHT && otherPosition == ACCESSORY_POSITION_RIGHT)
+					{
+						relativeTo2.x = relativeTo.x + (object.x - relativeTo.x + relativeTo.width - relativeTo2.width) / 2;
+					}
+					else if(position == ACCESSORY_POSITION_LEFT && otherPosition == ACCESSORY_POSITION_LEFT)
+					{
+						relativeTo2.x = object.x + (relativeTo.x - object.x + object.width - relativeTo2.width) / 2;
+					}
+					else if(position == ACCESSORY_POSITION_BOTTOM && otherPosition == ACCESSORY_POSITION_TOP)
+					{
+						relativeTo.y = relativeTo2.y + (object.y - relativeTo2.y + relativeTo2.height - relativeTo.height) / 2;
+					}
+					else if(position == ACCESSORY_POSITION_TOP && otherPosition == ACCESSORY_POSITION_BOTTOM)
+					{
+						relativeTo.y = object.y + (relativeTo2.y - object.y + object.height - relativeTo.height) / 2;
+					}
+					else if(position == ACCESSORY_POSITION_BOTTOM && otherPosition == ACCESSORY_POSITION_BOTTOM)
+					{
+						relativeTo2.y = relativeTo.y + (object.y - relativeTo.y + relativeTo.height - relativeTo2.height) / 2;
+					}
+					else if(position == ACCESSORY_POSITION_TOP && otherPosition == ACCESSORY_POSITION_TOP)
+					{
+						relativeTo2.y = object.y + (relativeTo.y - object.y + object.height - relativeTo2.height) / 2;
+					}
+				}
 			}
 
 			if(position == ACCESSORY_POSITION_LEFT || position == ACCESSORY_POSITION_RIGHT)
@@ -1986,18 +4202,62 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
-		protected function handleOwnerScroll():void
+		protected function owner_scrollStartHandler(event:Event):void
 		{
-			this._touchPointID = -1;
+			if(this._delayTextureCreationOnScroll)
+			{
+				if(this.accessoryLoader)
+				{
+					this.accessoryLoader.delayTextureCreation = true;
+				}
+				if(this.iconLoader)
+				{
+					this.iconLoader.delayTextureCreation = true;
+				}
+			}
+
+			if(this.touchPointID < 0 && this.accessoryTouchPointID < 0)
+			{
+				return;
+			}
+			this.resetTouchState();
 			if(this._stateDelayTimer && this._stateDelayTimer.running)
 			{
 				this._stateDelayTimer.stop();
 			}
 			this._delayedCurrentState = null;
-			if(this._currentState != Button.STATE_UP)
+
+			if(this.accessoryTouchPointID >= 0)
 			{
-				super.currentState = Button.STATE_UP;
+				this._owner.stopScrolling();
 			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function owner_scrollCompleteHandler(event:Event):void
+		{
+			if(this._delayTextureCreationOnScroll)
+			{
+				if(this.accessoryLoader)
+				{
+					this.accessoryLoader.delayTextureCreation = false;
+				}
+				if(this.iconLoader)
+				{
+					this.iconLoader.delayTextureCreation = false;
+				}
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		override protected function button_removedFromStageHandler(event:Event):void
+		{
+			super.button_removedFromStageHandler(event);
+			this.accessoryTouchPointID = -1;
 		}
 
 		/**
@@ -2005,19 +4265,11 @@ package feathers.controls.renderers
 		 */
 		protected function itemRenderer_triggeredHandler(event:Event):void
 		{
-			if(this._isToggle || !this.isSelectableWithoutToggle)
+			if(this._isToggle || !this.isSelectableWithoutToggle || (this._itemHasSelectable && !this.itemToSelectable(this._data)))
 			{
 				return;
 			}
 			this.isSelected = true;
-		}
-
-		/**
-		 * @private
-		 */
-		protected function accessoryLabelProperties_onChange(proxy:PropertyProxy, name:String):void
-		{
-			this.invalidate(INVALIDATION_FLAG_STYLES);
 		}
 
 		/**
@@ -2032,16 +4284,70 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
+		override protected function button_touchHandler(event:TouchEvent):void
+		{
+			if(this.accessory && !this._isSelectableOnAccessoryTouch && this.accessory != this.accessoryLabel && this.accessory != this.accessoryLoader && this.touchPointID < 0)
+			{
+				//ignore all touches on accessories that are not labels or
+				//loaders. return to up state.
+				var touch:Touch = event.getTouch(this.accessory);
+				if(touch)
+				{
+					this.currentState = Button.STATE_UP;
+					return;
+				}
+			}
+			super.button_touchHandler(event);
+		}
+
+		/**
+		 * @private
+		 */
 		protected function accessory_touchHandler(event:TouchEvent):void
 		{
-			if(!this.stopAccessoryTouchEventPropagation ||
+			if(!this._isEnabled)
+			{
+				this.accessoryTouchPointID = -1;
+				return;
+			}
+			if(!this._stopScrollingOnAccessoryTouch ||
 				this.accessory == this.accessoryLabel ||
-				this.accessory == this.accessoryImage)
+				this.accessory == this.accessoryLoader)
 			{
 				//do nothing
 				return;
 			}
-			event.stopPropagation();
+
+			if(this.accessoryTouchPointID >= 0)
+			{
+				var touch:Touch = event.getTouch(this.accessory, TouchPhase.ENDED, this.accessoryTouchPointID);
+				if(!touch)
+				{
+					return;
+				}
+				this.accessoryTouchPointID = -1;
+			}
+			else //if we get here, we don't have a saved touch ID yet
+			{
+				touch = event.getTouch(this.accessory, TouchPhase.BEGAN);
+				if(!touch)
+				{
+					return;
+				}
+				this.accessoryTouchPointID = touch.id;
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function accessory_resizeHandler(event:Event):void
+		{
+			if(this._ignoreAccessoryResizes)
+			{
+				return;
+			}
+			this.invalidate(INVALIDATION_FLAG_SIZE);
 		}
 
 		/**

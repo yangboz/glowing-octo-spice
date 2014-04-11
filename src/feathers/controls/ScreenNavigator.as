@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -8,7 +8,9 @@ accordance with the terms of the accompanying license agreement.
 package feathers.controls
 {
 	import feathers.core.FeathersControl;
+	import feathers.core.IValidating;
 	import feathers.events.FeathersEventType;
+	import feathers.skins.IStyleProvider;
 
 	import flash.errors.IllegalOperationError;
 	import flash.geom.Rectangle;
@@ -21,6 +23,21 @@ package feathers.controls
 	/**
 	 * Dispatched when the active screen changes.
 	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
 	 * @eventType starling.events.Event.CHANGE
 	 */
 	[Event(name="change",type="starling.events.Event")]
@@ -29,6 +46,21 @@ package feathers.controls
 	 * Dispatched when the current screen is removed and there is no active
 	 * screen.
 	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
 	 * @eventType feathers.events.FeathersEventType.CLEAR
 	 */
 	[Event(name="clear",type="starling.events.Event")]
@@ -36,12 +68,42 @@ package feathers.controls
 	/**
 	 * Dispatched when the transition between screens begins.
 	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
 	 * @eventType feathers.events.FeathersEventType.TRANSITION_START
 	 */
 	[Event(name="transitionStart",type="starling.events.Event")]
 
 	/**
 	 * Dispatched when the transition between screens has completed.
+	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
 	 *
 	 * @eventType feathers.events.FeathersEventType.TRANSITION_COMPLETE
 	 */
@@ -51,10 +113,19 @@ package feathers.controls
 	 * A "view stack"-like container that supports navigation between screens
 	 * (any display object) through events.
 	 *
+	 * <p>The following example creates a screen navigator, adds a screen and
+	 * displays it:</p>
+	 *
+	 * <listing version="3.0">
+	 * var navigator:ScreenNavigator = new ScreenNavigator();
+	 * navigator.addScreen( "mainMenu", new ScreenNavigatorItem( MainMenuScreen );
+	 * this.addChild( navigator );
+	 *
+	 * navigator.showScreen( "mainMenu" );</listing>
+	 *
 	 * @see http://wiki.starling-framework.org/feathers/screen-navigator
 	 * @see http://wiki.starling-framework.org/feathers/transitions
 	 * @see feathers.controls.ScreenNavigatorItem
-	 * @see feathers.controls.Screen
 	 */
 	public class ScreenNavigator extends FeathersControl
 	{
@@ -64,12 +135,35 @@ package feathers.controls
 		protected static var SIGNAL_TYPE:Class;
 
 		/**
+		 * The screen navigator will auto size itself to fill the entire stage.
+		 *
+		 * @see #autoSizeMode
+		 */
+		public static const AUTO_SIZE_MODE_STAGE:String = "stage";
+
+		/**
+		 * The screen navigator will auto size itself to fit its content.
+		 *
+		 * @see #autoSizeMode
+		 */
+		public static const AUTO_SIZE_MODE_CONTENT:String = "content";
+
+		/**
+		 * The default <code>IStyleProvider</code> for all <code>ScreenNavigator</code>
+		 * components.
+		 *
+		 * @default null
+		 * @see feathers.core.FeathersControl#styleProvider
+		 */
+		public static var styleProvider:IStyleProvider;
+
+		/**
 		 * The default transition function.
 		 */
-		protected static function defaultTransition(oldScreen:DisplayObject, newScreen:DisplayObject, completeHandler:Function):void
+		protected static function defaultTransition(oldScreen:DisplayObject, newScreen:DisplayObject, completeCallback:Function):void
 		{
 			//in short, do nothing
-			completeHandler();
+			completeCallback();
 		}
 
 		/**
@@ -78,6 +172,7 @@ package feathers.controls
 		public function ScreenNavigator()
 		{
 			super();
+			this._styleProvider = ScreenNavigator.styleProvider;
 			if(!SIGNAL_TYPE)
 			{
 				try
@@ -89,8 +184,8 @@ package feathers.controls
 					//signals not being used
 				}
 			}
-			this.addEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
-			this.addEventListener(Event.REMOVED_FROM_STAGE, removedFromStageHandler);
+			this.addEventListener(Event.ADDED_TO_STAGE, screenNavigator_addedToStageHandler);
+			this.addEventListener(Event.REMOVED_FROM_STAGE, screenNavigator_removedFromStageHandler);
 		}
 
 		/**
@@ -127,6 +222,13 @@ package feathers.controls
 		/**
 		 * Determines if the navigator's content should be clipped to the width
 		 * and height.
+		 *
+		 * <p>In the following example, clipping is enabled:</p>
+		 *
+		 * <listing version="3.0">
+		 * navigator.clipContent = true;</listing>
+		 *
+		 * @default false
 		 */
 		public function get clipContent():Boolean
 		{
@@ -148,7 +250,34 @@ package feathers.controls
 
 		/**
 		 * A function that is called when the <code>ScreenNavigator</code> is
-		 * changing screens.
+		 * changing screens that is intended to display a transition effect and
+		 * to notify the <code>ScreenNavigator</code> when the effect is
+		 * finished.
+		 *
+		 * <p>The function should have the following signature:</p>
+		 * <pre>function(oldScreen:DisplayObject, newScreen:DisplayObject, completeCallback:Function):void</pre>
+		 *
+		 * <p>Either of the <code>oldScreen</code> and <code>newScreen</code>
+		 * arguments may be <code>null</code>, but never both. The
+		 * <code>oldScreen</code> argument will be <code>null</code> when the
+		 * first screen is displayed or when a new screen is displayed after
+		 * clearing the screen. The <code>newScreen</code> argument will
+		 * be null when clearing the screen.</p>
+		 *
+		 * <p>The <code>completeCallback</code> function <em>must</em> be called
+		 * when the transition effect finishes. It takes zero arguments and
+		 * returns nothing. In other words, it has the following signature:</p>
+		 *
+		 * <pre>function():void</pre>
+		 *
+		 * <p>In the future, it may be possible for a transition to cancel
+		 * itself. If this happens, the <code>completeCallback</code> may begin
+		 * accepting arguments, but they will have default values and existing
+		 * uses of <code>completeCallback</code> should continue to work.</p>
+		 *
+		 * @see #showScreen()
+		 * @see #clearScreen()
+		 * @see http://wiki.starling-framework.org/feathers/transitions
 		 */
 		public var transition:Function = defaultTransition;
 
@@ -188,6 +317,56 @@ package feathers.controls
 		protected var _clearAfterTransition:Boolean = false;
 
 		/**
+		 * @private
+		 */
+		protected var _autoSizeMode:String = AUTO_SIZE_MODE_STAGE;
+
+		[Inspectable(type="String",enumeration="stage,content")]
+		/**
+		 * Determines how the screen navigator will set its own size when its
+		 * dimensions (width and height) aren't set explicitly.
+		 *
+		 * <p>In the following example, the screen navigator will be sized to
+		 * match its content:</p>
+		 *
+		 * <listing version="3.0">
+		 * navigator.autoSizeMode = ScreenNavigator.AUTO_SIZE_MODE_CONTENT;</listing>
+		 *
+		 * @default ScreenNavigator.AUTO_SIZE_MODE_STAGE
+		 *
+		 * @see #AUTO_SIZE_MODE_STAGE
+		 * @see #AUTO_SIZE_MODE_CONTENT
+		 */
+		public function get autoSizeMode():String
+		{
+			return this._autoSizeMode;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set autoSizeMode(value:String):void
+		{
+			if(this._autoSizeMode == value)
+			{
+				return;
+			}
+			this._autoSizeMode = value;
+			if(this._activeScreen)
+			{
+				if(this._autoSizeMode == AUTO_SIZE_MODE_CONTENT)
+				{
+					this._activeScreen.addEventListener(FeathersEventType.RESIZE, activeScreen_resizeHandler);
+				}
+				else
+				{
+					this._activeScreen.removeEventListener(FeathersEventType.RESIZE, activeScreen_resizeHandler);
+				}
+			}
+			this.invalidate(INVALIDATION_FLAG_SIZE);
+		}
+
+		/**
 		 * Displays a screen and returns a reference to it. If a previous
 		 * transition is running, the new screen will be queued, and no
 		 * reference will be returned.
@@ -199,16 +378,16 @@ package feathers.controls
 				throw new IllegalOperationError("Screen with id '" + id + "' cannot be shown because it has not been defined.");
 			}
 
-			if(this._activeScreenID == id)
-			{
-				return this._activeScreen;
-			}
-
 			if(this._transitionIsActive)
 			{
 				this._nextScreenID = id;
 				this._clearAfterTransition = false;
 				return null;
+			}
+
+			if(this._activeScreenID == id)
+			{
+				return this._activeScreen;
 			}
 
 			this._previousScreenInTransition = this._activeScreen;
@@ -217,6 +396,8 @@ package feathers.controls
 			{
 				this.clearScreenInternal(false);
 			}
+			
+			this._transitionIsActive = true;
 
 			const item:ScreenNavigatorItem = ScreenNavigatorItem(this._screens[id]);
 			this._activeScreen = item.getScreen();
@@ -267,17 +448,20 @@ package feathers.controls
 
 			this._screenEvents[id] = savedScreenEvents;
 
+			if(this._autoSizeMode == AUTO_SIZE_MODE_CONTENT)
+			{
+				this._activeScreen.addEventListener(FeathersEventType.RESIZE, activeScreen_resizeHandler);
+			}
 			this.addChild(this._activeScreen);
 
 			this.invalidate(INVALIDATION_FLAG_SELECTED);
-			if(!VALIDATION_QUEUE.isValidating)
+			if(this._validationQueue && !this._validationQueue.isValidating)
 			{
 				//force a COMPLETE validation of everything
 				//but only if we're not already doing that...
-				VALIDATION_QUEUE.advanceTime(0);
+				this._validationQueue.advanceTime(0);
 			}
 
-			this._transitionIsActive = true;
 			this.dispatchEventWith(FeathersEventType.TRANSITION_START);
 			this.transition(this._previousScreenInTransition, this._activeScreen, transitionComplete);
 
@@ -383,6 +567,10 @@ package feathers.controls
 			{
 				throw new IllegalOperationError("Screen '" + id + "' cannot be removed because it has not been added.");
 			}
+			if(this._activeScreenID == id)
+			{
+				this.clearScreen();
+			}
 			delete this._screens[id];
 		}
 
@@ -439,6 +627,15 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		override public function dispose():void
+		{
+			this.clearScreenInternal(false);
+			super.dispose();
+		}
+
+		/**
+		 * @private
+		 */
 		override protected function draw():void
 		{
 			var sizeInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_SIZE);
@@ -451,8 +648,14 @@ package feathers.controls
 			{
 				if(this._activeScreen)
 				{
-					this._activeScreen.width = this.actualWidth;
-					this._activeScreen.height = this.actualHeight;
+					if(this._activeScreen.width != this.actualWidth)
+					{
+						this._activeScreen.width = this.actualWidth;
+					}
+					if(this._activeScreen.height != this.actualHeight)
+					{
+						this._activeScreen.height = this.actualHeight;
+					}
 				}
 			}
 
@@ -477,7 +680,20 @@ package feathers.controls
 		}
 
 		/**
-		 * @private
+		 * If the component's dimensions have not been set explicitly, it will
+		 * measure its content and determine an ideal size for itself. If the
+		 * <code>explicitWidth</code> or <code>explicitHeight</code> member
+		 * variables are set, those value will be used without additional
+		 * measurement. If one is set, but not the other, the dimension with the
+		 * explicit value will not be measured, but the other non-explicit
+		 * dimension will still need measurement.
+		 *
+		 * <p>Calls <code>setSizeInternal()</code> to set up the
+		 * <code>actualWidth</code> and <code>actualHeight</code> member
+		 * variables used for layout.</p>
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
 		 */
 		protected function autoSizeIfNeeded():Boolean
 		{
@@ -487,16 +703,37 @@ package feathers.controls
 			{
 				return false;
 			}
+
+			if(this._autoSizeMode == AUTO_SIZE_MODE_CONTENT &&
+				this._activeScreen is IValidating)
+			{
+				IValidating(this._activeScreen).validate();
+			}
+
 			var newWidth:Number = this.explicitWidth;
 			if(needsWidth)
 			{
-				newWidth = this.stage.stageWidth;
+				if(this._autoSizeMode == AUTO_SIZE_MODE_CONTENT)
+				{
+					newWidth = this._activeScreen ? this._activeScreen.width : 0;
+				}
+				else
+				{
+					newWidth = this.stage.stageWidth;
+				}
 			}
 
 			var newHeight:Number = this.explicitHeight;
 			if(needsHeight)
 			{
-				newHeight = this.stage.stageHeight;
+				if(this._autoSizeMode == AUTO_SIZE_MODE_CONTENT)
+				{
+					newHeight = this._activeScreen ? this._activeScreen.height : 0;
+				}
+				else
+				{
+					newHeight = this.stage.stageHeight;
+				}
 			}
 
 			return this.setSizeInternal(newWidth, newHeight, false);
@@ -518,6 +755,10 @@ package feathers.controls
 					const screen:IScreen = IScreen(this._previousScreenInTransition);
 					screen.screenID = null;
 					screen.owner = null;
+				}
+				if(this._autoSizeMode == AUTO_SIZE_MODE_CONTENT)
+				{
+					this._previousScreenInTransition.removeEventListener(FeathersEventType.RESIZE, activeScreen_resizeHandler);
 				}
 				this.removeChild(this._previousScreenInTransition, canBeDisposed);
 				this._previousScreenInTransition = null;
@@ -579,7 +820,7 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		protected function addedToStageHandler(event:Event):void
+		protected function screenNavigator_addedToStageHandler(event:Event):void
 		{
 			this.stage.addEventListener(ResizeEvent.RESIZE, stage_resizeHandler);
 		}
@@ -587,9 +828,21 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		protected function removedFromStageHandler(event:Event):void
+		protected function screenNavigator_removedFromStageHandler(event:Event):void
 		{
 			this.stage.removeEventListener(ResizeEvent.RESIZE, stage_resizeHandler);
+		}
+
+		/**
+		 * @private
+		 */
+		protected function activeScreen_resizeHandler(event:Event):void
+		{
+			if(this._isValidating || this._autoSizeMode != AUTO_SIZE_MODE_CONTENT)
+			{
+				return;
+			}
+			this.invalidate(INVALIDATION_FLAG_SIZE);
 		}
 
 		/**

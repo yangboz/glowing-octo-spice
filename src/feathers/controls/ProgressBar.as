@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -8,6 +8,7 @@ accordance with the terms of the accompanying license agreement.
 package feathers.controls
 {
 	import feathers.core.FeathersControl;
+	import feathers.skins.IStyleProvider;
 	import feathers.utils.math.clamp;
 
 	import starling.display.DisplayObject;
@@ -15,25 +16,48 @@ package feathers.controls
 	/**
 	 * Displays the progress of a task over time. Non-interactive.
 	 *
+	 * <p>The following example creates a progress bar:</p>
+	 *
+	 * <listing version="3.0">
+	 * var progress:ProgressBar = new ProgressBar();
+	 * progress.minimum = 0;
+	 * progress.maximum = 100;
+	 * progress.value = 20;
+	 * this.addChild( progress );</listing>
+	 *
 	 * @see http://wiki.starling-framework.org/feathers/progress-bar
 	 */
 	public class ProgressBar extends FeathersControl
 	{
 		/**
 		 * The progress bar fills horizontally (on the x-axis).
+		 *
+		 * @see #direction
 		 */
 		public static const DIRECTION_HORIZONTAL:String = "horizontal";
 
 		/**
 		 * The progress bar fills vertically (on the y-axis).
+		 *
+		 * @see #direction
 		 */
 		public static const DIRECTION_VERTICAL:String = "vertical";
+
+		/**
+		 * The default <code>IStyleProvider</code> for all <code>ProgressBar</code>
+		 * components.
+		 *
+		 * @default null
+		 * @see feathers.core.FeathersControl#styleProvider
+		 */
+		public static var styleProvider:IStyleProvider;
 
 		/**
 		 * Constructor.
 		 */
 		public function ProgressBar()
 		{
+			this._styleProvider = ProgressBar.styleProvider;
 		}
 
 		/**
@@ -46,6 +70,16 @@ package feathers.controls
 		 * Determines the direction that the progress bar fills. When this value
 		 * changes, the progress bar's width and height values do not change
 		 * automatically.
+		 *
+		 * <p>In the following example, the direction is set to vertical:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.direction = ProgressBar.DIRECTION_VERTICAL;</listing>
+		 *
+		 * @default ProgressBar.DIRECTION_HORIZONTAL
+		 *
+		 * @see #DIRECTION_HORIZONTAL
+		 * @see #DIRECTION_VERTICAL
 		 */
 		public function get direction():String
 		{
@@ -72,6 +106,18 @@ package feathers.controls
 
 		/**
 		 * The value of the progress bar, between the minimum and maximum.
+		 *
+		 * <p>In the following example, the value is set to 12:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.minimum = 0;
+		 * progress.maximum = 100;
+		 * progress.value = 12;</listing>
+		 *
+		 * @default 0
+		 *
+		 * @see #minimum
+		 * @see #maximum
 		 */
 		public function get value():Number
 		{
@@ -99,6 +145,18 @@ package feathers.controls
 
 		/**
 		 * The progress bar's value will not go lower than the minimum.
+		 *
+		 * <p>In the following example, the minimum is set to 0:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.minimum = 0;
+		 * progress.maximum = 100;
+		 * progress.value = 12;</listing>
+		 *
+		 * @default 0
+		 *
+		 * @see #value
+		 * @see #maximum
 		 */
 		public function get minimum():Number
 		{
@@ -125,6 +183,18 @@ package feathers.controls
 
 		/**
 		 * The progress bar's value will not go higher than the maximum.
+		 *
+		 * <p>In the following example, the maximum is set to 100:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.minimum = 0;
+		 * progress.maximum = 100;
+		 * progress.value = 12;</listing>
+		 *
+		 * @default 1
+		 *
+		 * @see #value
+		 * @see #minimum
 		 */
 		public function get maximum():Number
 		{
@@ -166,6 +236,14 @@ package feathers.controls
 
 		/**
 		 * The primary background to display.
+		 *
+		 * <p>In the following example, the progress bar is given a background
+		 * skin:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.backgroundSkin = new Image( texture );</listing>
+		 *
+		 * @default null
 		 */
 		public function get backgroundSkin():DisplayObject
 		{
@@ -190,7 +268,6 @@ package feathers.controls
 			if(this._backgroundSkin && this._backgroundSkin.parent != this)
 			{
 				this._backgroundSkin.visible = false;
-				this._backgroundSkin.touchable = false;
 				this.addChildAt(this._backgroundSkin, 0);
 			}
 			this.invalidate(INVALIDATION_FLAG_STYLES);
@@ -203,6 +280,14 @@ package feathers.controls
 
 		/**
 		 * A background to display when the progress bar is disabled.
+		 *
+		 * <p>In the following example, the progress bar is given a disabled
+		 * background skin:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.backgroundDisabledSkin = new Image( texture );</listing>
+		 *
+		 * @default null
 		 */
 		public function get backgroundDisabledSkin():DisplayObject
 		{
@@ -227,7 +312,6 @@ package feathers.controls
 			if(this._backgroundDisabledSkin && this._backgroundDisabledSkin.parent != this)
 			{
 				this._backgroundDisabledSkin.visible = false;
-				this._backgroundDisabledSkin.touchable = false;
 				this.addChildAt(this._backgroundDisabledSkin, 0);
 			}
 			this.invalidate(INVALIDATION_FLAG_STYLES);
@@ -268,6 +352,14 @@ package feathers.controls
 		 * to the <code>fillSkin</code> setter should have a <code>width</code>
 		 * value that is the same as that minimum width value where the image
 		 * parts do not overlap.</p>
+		 *
+		 * <p>In the following example, the progress bar is given a fill
+		 * skin:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.fillSkin = new Image( texture );</listing>
+		 *
+		 * @default null
 		 */
 		public function get fillSkin():DisplayObject
 		{
@@ -292,7 +384,6 @@ package feathers.controls
 			if(this._fillSkin && this._fillSkin.parent != this)
 			{
 				this._fillSkin.visible = false;
-				this._fillSkin.touchable = false;
 				this.addChild(this._fillSkin);
 			}
 			this.invalidate(INVALIDATION_FLAG_STYLES);
@@ -305,6 +396,14 @@ package feathers.controls
 
 		/**
 		 * A fill to display when the progress bar is disabled.
+		 *
+		 * <p>In the following example, the progress bar is given a disabled fill
+		 * skin:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.fillDisabledSkin = new Image( texture );</listing>
+		 *
+		 * @default null
 		 */
 		public function get fillDisabledSkin():DisplayObject
 		{
@@ -329,7 +428,6 @@ package feathers.controls
 			if(this._fillDisabledSkin && this._fillDisabledSkin.parent != this)
 			{
 				this._fillDisabledSkin.visible = false;
-				this._fillDisabledSkin.touchable = false;
 				this.addChild(this._fillDisabledSkin);
 			}
 			this.invalidate(INVALIDATION_FLAG_STYLES);
@@ -340,6 +438,18 @@ package feathers.controls
 		 * <code>padding</code> getter always returns the value of
 		 * <code>paddingTop</code>, but the other padding values may be
 		 * different.
+		 *
+		 * <p>In the following example, the padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.padding = 20;</listing>
+		 *
+		 * @default 0
+		 *
+		 * @see #paddingTop
+		 * @see #paddingRight
+		 * @see #paddingBottom
+		 * @see #paddingLeft
 		 */
 		public function get padding():Number
 		{
@@ -365,6 +475,13 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the progress bar's top edge and
 		 * the progress bar's content.
+		 *
+		 * <p>In the following example, the top padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.paddingTop = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingTop():Number
 		{
@@ -392,6 +509,13 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the progress bar's right edge
 		 * and the progress bar's content.
+		 *
+		 * <p>In the following example, the right padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.paddingRight = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingRight():Number
 		{
@@ -419,6 +543,13 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the progress bar's bottom edge
 		 * and the progress bar's content.
+		 *
+		 * <p>In the following example, the bottom padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.paddingBottom = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingBottom():Number
 		{
@@ -446,6 +577,13 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the progress bar's left edge
 		 * and the progress bar's content.
+		 *
+		 * <p>In the following example, the left padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * progress.paddingLeft = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingLeft():Number
 		{
@@ -512,7 +650,20 @@ package feathers.controls
 		}
 
 		/**
-		 * @private
+		 * If the component's dimensions have not been set explicitly, it will
+		 * measure its content and determine an ideal size for itself. If the
+		 * <code>explicitWidth</code> or <code>explicitHeight</code> member
+		 * variables are set, those value will be used without additional
+		 * measurement. If one is set, but not the other, the dimension with the
+		 * explicit value will not be measured, but the other non-explicit
+		 * dimension will still need measurement.
+		 *
+		 * <p>Calls <code>setSizeInternal()</code> to set up the
+		 * <code>actualWidth</code> and <code>actualHeight</code> member
+		 * variables used for layout.</p>
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
 		 */
 		protected function autoSizeIfNeeded():Boolean
 		{

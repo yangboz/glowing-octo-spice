@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -8,11 +8,50 @@ accordance with the terms of the accompanying license agreement.
 package feathers.controls
 {
 	import feathers.controls.supportClasses.TextFieldViewPort;
+	import feathers.skins.IStyleProvider;
 
 	import flash.text.AntiAliasType;
 	import flash.text.GridFitType;
 	import flash.text.StyleSheet;
 	import flash.text.TextFormat;
+
+	import starling.events.Event;
+
+	/**
+	 * Dispatched when an anchor (<code>&lt;a&gt;</code>) element in the HTML
+	 * text is triggered when the <code>href</code> attribute begins with
+	 * <code>"event:"</code>. This event is dispatched when the internal
+	 * <code>flash.text.TextField</code> dispatches its own
+	 * <code>TextEvent.LINK</code>.
+	 *
+	 * <p>The <code>data</code> property of the <code>Event</code> object that
+	 * is dispatched by the <code>ScrollText</code> contains the value of the
+	 * <code>text</code> property of the <code>TextEvent</code> that is
+	 * dispatched by the <code>flash.text.TextField</code>.</p>
+	 *
+	 * <p>The following example listens for <code>Event.TRIGGERED</code> on a
+	 * <code>ScrollText</code> component:</p>
+	 *
+	 * <listing version="3.0">
+	 * var scrollText:ScrollText = new ScrollText();
+	 * scrollText.text = "&lt;a href=\"event:hello\"&gt;Hello&lt;/a&gt; World";
+	 * scrollText.addEventListener( Event.TRIGGERED, scrollText_triggeredHandler );
+	 * this.addChild( scrollText );</listing>
+	 *
+	 * <p>The following example shows a listener for <code>Event.TRIGGERED</code>:</p>
+	 *
+	 * <listing version="3.0">
+	 * function scrollText_triggeredHandler(event:Event):void
+	 * {
+	 *     trace( event.data ); //hello
+	 * }</listing>
+	 *
+	 * @eventType starling.events.Event.TRIGGERED
+	 *
+	 * @see flash.text.TextField
+	 * @see flash.events.TextEvent.LINK
+	 */
+	[Event(name="triggered",type="starling.events.Event")]
 
 	/**
 	 * Displays long passages of text in a scrollable container using the
@@ -29,6 +68,13 @@ package feathers.controls
 	 * rather than on the GPU, it may not perform very well on mobile devices
 	 * with high resolution screens.</p>
 	 *
+	 * <p>The following example displays some text:</p>
+	 *
+	 * <listing version="3.0">
+	 * var scrollText:ScrollText = new ScrollText();
+	 * scrollText.text = "Hello World";
+	 * this.addChild( scrollText );</listing>
+	 *
 	 * @see http://wiki.starling-framework.org/feathers/scroll-text
 	 * @see feathers.controls.text.TextFieldTextRenderer
 	 */
@@ -36,50 +82,101 @@ package feathers.controls
 	{
 		/**
 		 * @copy feathers.controls.Scroller#SCROLL_POLICY_AUTO
+		 *
+		 * @see feathers.controls.Scroller#horizontalScrollPolicy
+		 * @see feathers.controls.Scroller#verticalScrollPolicy
 		 */
 		public static const SCROLL_POLICY_AUTO:String = "auto";
 
 		/**
 		 * @copy feathers.controls.Scroller#SCROLL_POLICY_ON
+		 *
+		 * @see feathers.controls.Scroller#horizontalScrollPolicy
+		 * @see feathers.controls.Scroller#verticalScrollPolicy
 		 */
 		public static const SCROLL_POLICY_ON:String = "on";
 
 		/**
 		 * @copy feathers.controls.Scroller#SCROLL_POLICY_OFF
+		 *
+		 * @see feathers.controls.Scroller#horizontalScrollPolicy
+		 * @see feathers.controls.Scroller#verticalScrollPolicy
 		 */
 		public static const SCROLL_POLICY_OFF:String = "off";
 
 		/**
 		 * @copy feathers.controls.Scroller#SCROLL_BAR_DISPLAY_MODE_FLOAT
+		 *
+		 * @see feathers.controls.Scroller#scrollBarDisplayMode
 		 */
 		public static const SCROLL_BAR_DISPLAY_MODE_FLOAT:String = "float";
 
 		/**
 		 * @copy feathers.controls.Scroller#SCROLL_BAR_DISPLAY_MODE_FIXED
+		 *
+		 * @see feathers.controls.Scroller#scrollBarDisplayMode
 		 */
 		public static const SCROLL_BAR_DISPLAY_MODE_FIXED:String = "fixed";
 
 		/**
 		 * @copy feathers.controls.Scroller#SCROLL_BAR_DISPLAY_MODE_NONE
+		 *
+		 * @see feathers.controls.Scroller#scrollBarDisplayMode
 		 */
 		public static const SCROLL_BAR_DISPLAY_MODE_NONE:String = "none";
 
 		/**
+		 * The vertical scroll bar will be positioned on the right.
+		 *
+		 * @see feathers.controls.Scroller#verticalScrollBarPosition
+		 */
+		public static const VERTICAL_SCROLL_BAR_POSITION_RIGHT:String = "right";
+
+		/**
+		 * The vertical scroll bar will be positioned on the left.
+		 *
+		 * @see feathers.controls.Scroller#verticalScrollBarPosition
+		 */
+		public static const VERTICAL_SCROLL_BAR_POSITION_LEFT:String = "left";
+
+		/**
 		 * @copy feathers.controls.Scroller#INTERACTION_MODE_TOUCH
+		 *
+		 * @see feathers.controls.Scroller#interactionMode
 		 */
 		public static const INTERACTION_MODE_TOUCH:String = "touch";
 
 		/**
 		 * @copy feathers.controls.Scroller#INTERACTION_MODE_MOUSE
+		 *
+		 * @see feathers.controls.Scroller#interactionMode
 		 */
 		public static const INTERACTION_MODE_MOUSE:String = "mouse";
+
+		/**
+		 * @copy feathers.controls.Scroller#INTERACTION_MODE_TOUCH_AND_SCROLL_BARS
+		 *
+		 * @see feathers.controls.Scroller#interactionMode
+		 */
+		public static const INTERACTION_MODE_TOUCH_AND_SCROLL_BARS:String = "touchAndScrollBars";
+
+		/**
+		 * The default <code>IStyleProvider</code> for all <code>ScrollText</code>
+		 * components.
+		 *
+		 * @default null
+		 * @see feathers.core.FeathersControl#styleProvider
+		 */
+		public static var styleProvider:IStyleProvider;
 
 		/**
 		 * Constructor.
 		 */
 		public function ScrollText()
 		{
+			this._styleProvider = ScrollText.styleProvider;
 			this.textViewPort = new TextFieldViewPort();
+			this.textViewPort.addEventListener(Event.TRIGGERED, textViewPort_triggeredHandler);
 			this.viewPort = this.textViewPort;
 		}
 
@@ -97,6 +194,13 @@ package feathers.controls
 		 * The text to display. If <code>isHTML</code> is <code>true</code>, the
 		 * text will be rendered as HTML with the same capabilities as the
 		 * <code>htmlText</code> property of <code>flash.text.TextField</code>.
+		 *
+		 * <p>In the following example, some text is displayed:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollText.text = "Hello World";</listing>
+		 *
+		 * @default ""
 		 *
 		 * @see #isHTML
 		 * @see flash.text.TextField#htmlText
@@ -131,6 +235,14 @@ package feathers.controls
 		/**
 		 * Determines if the TextField should display the text as HTML or not.
 		 *
+		 * <p>In the following example, some HTML-formatted text is displayed:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollText.isHTML = true;
+		 * scrollText.text = "&lt;b&gt;Hello&lt;/b&gt; &lt;i&gt;World&lt;/i&gt;";</listing>
+		 *
+		 * @default false
+		 *
 		 * @see #text
 		 * @see flash.text.TextField#htmlText
 		 */
@@ -160,6 +272,14 @@ package feathers.controls
 		/**
 		 * The font and styles used to draw the text.
 		 *
+		 * <p>In the following example, the text is formatted:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollText.textFormat = new TextFormat( "_sans", 16, 0x333333 );</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #disabledTextFormat
 		 * @see flash.text.TextFormat
 		 */
 		public function get textFormat():TextFormat
@@ -183,10 +303,49 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected var _disabledTextFormat:TextFormat;
+
+		/**
+		 * The font and styles used to draw the text when the component is disabled.
+		 *
+		 * <p>In the following example, the disabled text format is changed:</p>
+		 *
+		 * <listing version="3.0">
+		 * textRenderer.isEnabled = false;
+		 * textRenderer.disabledTextFormat = new TextFormat( "_sans", 16, 0xcccccc );</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #textFormat
+		 * @see flash.text.TextFormat
+		 */
+		public function get disabledTextFormat():TextFormat
+		{
+			return this._disabledTextFormat;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set disabledTextFormat(value:TextFormat):void
+		{
+			if(this._disabledTextFormat == value)
+			{
+				return;
+			}
+			this._disabledTextFormat = value;
+			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _styleSheet:StyleSheet;
 
 		/**
 		 * The <code>StyleSheet</code> object to pass to the TextField.
+		 *
+		 * @default null
 		 *
 		 * @see flash.text.StyleSheet
 		 */
@@ -215,6 +374,15 @@ package feathers.controls
 
 		/**
 		 * Determines if the TextField should use an embedded font or not.
+		 *
+		 * <p>In the following example, some text is formatted with an embedded
+		 * font:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollText.textFormat = new TextFormat( "Source Sans Pro", 16, 0x333333;
+		 * scrollText.embedFonts = true;</listing>
+		 *
+		 * @default false
 		 */
 		public function get embedFonts():Boolean
 		{
@@ -240,9 +408,11 @@ package feathers.controls
 		private var _antiAliasType:String = AntiAliasType.ADVANCED;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
 		 *
 		 * @see flash.text.TextField#antiAliasType
+		 *
+		 * @default flash.text.AntiAliasType.ADVANCED
 		 */
 		public function get antiAliasType():String
 		{
@@ -268,9 +438,11 @@ package feathers.controls
 		private var _background:Boolean = false;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
 		 *
 		 * @see flash.text.TextField#background
+		 *
+		 * @default false
 		 */
 		public function get background():Boolean
 		{
@@ -296,9 +468,11 @@ package feathers.controls
 		private var _backgroundColor:uint = 0xffffff;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
 		 *
 		 * @see flash.text.TextField#backgroundColor
+		 *
+		 * @default 0xffffff
 		 */
 		public function get backgroundColor():uint
 		{
@@ -324,7 +498,9 @@ package feathers.controls
 		private var _border:Boolean = false;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
+		 *
+		 * @default false
 		 *
 		 * @see flash.text.TextField#border
 		 */
@@ -352,7 +528,9 @@ package feathers.controls
 		private var _borderColor:uint = 0x000000;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
+		 *
+		 * @default 0x000000
 		 *
 		 * @see flash.text.TextField#borderColor
 		 */
@@ -380,7 +558,9 @@ package feathers.controls
 		private var _condenseWhite:Boolean = false;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
+		 *
+		 * @default false
 		 *
 		 * @see flash.text.TextField#condenseWhite
 		 */
@@ -408,7 +588,9 @@ package feathers.controls
 		private var _displayAsPassword:Boolean = false;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
+		 *
+		 * @default false
 		 *
 		 * @see flash.text.TextField#displayAsPassword
 		 */
@@ -436,7 +618,9 @@ package feathers.controls
 		private var _gridFitType:String = GridFitType.PIXEL;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
+		 *
+		 * @default flash.text.GridFitType.PIXEL
 		 *
 		 * @see flash.text.TextField#gridFitType
 		 */
@@ -464,7 +648,9 @@ package feathers.controls
 		private var _sharpness:Number = 0;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
+		 *
+		 * @default 0
 		 *
 		 * @see flash.text.TextField#sharpness
 		 */
@@ -492,7 +678,9 @@ package feathers.controls
 		private var _thickness:Number = 0;
 
 		/**
-		 * Same as the TextField property with the same name.
+		 * Same as the flash.text.TextField property with the same name.
+		 *
+		 * @default 0
 		 *
 		 * @see flash.text.TextField#thickness
 		 */
@@ -517,11 +705,28 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		override public function get padding():Number
+		{
+			return this._textPaddingTop;
+		}
+
+		//no setter for padding because the one in Scroller is acceptable
+
+		/**
+		 * @private
+		 */
 		protected var _textPaddingTop:Number = 0;
 
 		/**
 		 * The minimum space, in pixels, between the component's top edge and
 		 * the top edge of the text.
+		 *
+		 * <p>In the following example, the top padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollText.paddingTop = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		override public function get paddingTop():Number
 		{
@@ -549,6 +754,11 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the component's right edge and
 		 * the right edge of the text.
+		 *
+		 * <p>In the following example, the right padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollText.paddingRight = 20;</listing>
 		 */
 		override public function get paddingRight():Number
 		{
@@ -576,6 +786,11 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the component's bottom edge and
 		 * the bottom edge of the text.
+		 *
+		 * <p>In the following example, the bottom padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollText.paddingBottom = 20;</listing>
 		 */
 		override public function get paddingBottom():Number
 		{
@@ -603,6 +818,11 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the component's left edge and
 		 * the left edge of the text.
+		 *
+		 * <p>In the following example, the left padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * scrollText.paddingLeft = 20;</listing>
 		 */
 		override public function get paddingLeft():Number
 		{
@@ -711,6 +931,7 @@ package feathers.controls
 				this.textViewPort.sharpness = this._sharpness;
 				this.textViewPort.thickness = this._thickness;
 				this.textViewPort.textFormat = this._textFormat;
+				this.textViewPort.disabledTextFormat = this._disabledTextFormat;
 				this.textViewPort.styleSheet = this._styleSheet;
 				this.textViewPort.embedFonts = this._embedFonts;
 				this.textViewPort.paddingTop = this._textPaddingTop;
@@ -722,6 +943,14 @@ package feathers.controls
 			}
 
 			super.draw();
+		}
+
+		/**
+		 * @private
+		 */
+		protected function textViewPort_triggeredHandler(event:Event, link:String):void
+		{
+			this.dispatchEventWith(Event.TRIGGERED, false, link);
 		}
 	}
 }

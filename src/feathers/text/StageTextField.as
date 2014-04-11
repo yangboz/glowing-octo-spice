@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -189,7 +189,7 @@ package feathers.text
 			this._textField.maxChars = value;
 		}
 
-		private function get multiline():Boolean
+		public function get multiline():Boolean
 		{
 			return this._textField.multiline;
 		}

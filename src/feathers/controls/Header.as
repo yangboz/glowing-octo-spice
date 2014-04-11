@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+Copyright 2012-2014 Joshua Tynjala. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -10,14 +10,24 @@ package feathers.controls
 	import feathers.core.FeathersControl;
 	import feathers.core.IFeathersControl;
 	import feathers.core.ITextRenderer;
+	import feathers.core.IValidating;
 	import feathers.core.PropertyProxy;
+	import feathers.events.FeathersEventType;
 	import feathers.layout.HorizontalLayout;
 	import feathers.layout.LayoutBoundsResult;
 	import feathers.layout.ViewPortBounds;
+	import feathers.skins.IStyleProvider;
+	import feathers.system.DeviceCapabilities;
 
+	import flash.display.Stage;
+	import flash.display.StageDisplayState;
+	import flash.events.FullScreenEvent;
 	import flash.geom.Point;
+	import flash.system.Capabilities;
 
+	import starling.core.Starling;
 	import starling.display.DisplayObject;
+	import starling.events.Event;
 
 	/**
 	 * A header that displays an optional title along with a horizontal regions
@@ -26,6 +36,20 @@ package feathers.controls
 	 * additional actions. The title is displayed in the center by default,
 	 * but it may be aligned to the left or right if there are no items on the
 	 * desired side.
+	 *
+	 * <p>In the following example, a header is created, given a title, and a
+	 * back button:</p>
+	 *
+	 * <listing version="3.0">
+	 * var backButton:Button = new Button();
+	 * backButton.label = "Back";
+	 * backButton.styleNameList.add( Button.ALTERNATE_NAME_BACK_BUTTON );
+	 * backButton.addEventListener( Event.TRIGGERED, backButton_triggeredHandler );
+	 *
+	 * var header:Header = new Header();
+	 * header.title = "I'm a header";
+	 * header.leftItems = new &lt;DisplayObject&gt;[ backButton ];
+	 * this.addChild( header );</listing>
 	 *
 	 * @see http://wiki.starling-framework.org/feathers/header
 	 */
@@ -40,6 +64,45 @@ package feathers.controls
 		 * @private
 		 */
 		protected static const INVALIDATION_FLAG_RIGHT_CONTENT:String = "rightContent";
+
+		/**
+		 * @private
+		 */
+		protected static const INVALIDATION_FLAG_CENTER_CONTENT:String = "centerContent";
+
+		/**
+		 * @private
+		 */
+		protected static const IOS_RETINA_STATUS_BAR_HEIGHT:Number = 40;
+
+		/**
+		 * @private
+		 */
+		protected static const IOS_NON_RETINA_STATUS_BAR_HEIGHT:Number = 20;
+
+		/**
+		 * @private
+		 */
+		protected static const IOS_RETINA_MINIMUM_DPI:Number = 264;
+
+		/**
+		 * @private
+		 */
+		protected static const IOS_NAME_PREFIX:String = "iPhone OS ";
+
+		/**
+		 * @private
+		 */
+		protected static const STATUS_BAR_MIN_IOS_VERSION:int = 7;
+
+		/**
+		 * The default <code>IStyleProvider</code> for all <code>Header</code>
+		 * components.
+		 *
+		 * @default null
+		 * @see feathers.core.FeathersControl#styleProvider
+		 */
+		public static var styleProvider:IStyleProvider;
 
 		/**
 		 * The title will appear in the center of the header.
@@ -124,17 +187,26 @@ package feathers.controls
 		public function Header()
 		{
 			super();
+			this._styleProvider = Header.styleProvider;
+			this.addEventListener(Event.ADDED_TO_STAGE, header_addedToStageHandler);
+			this.addEventListener(Event.REMOVED_FROM_STAGE, header_removedFromStageHandler);
 		}
 
 		/**
-		 * The value added to the <code>nameList</code> of the header's title.
+		 * The value added to the <code>nameList</code> of the header's title. This
+		 * variable is <code>protected</code> so that sub-classes can customize
+		 * the title name in their constructors instead of using the default
+		 * name defined by <code>DEFAULT_CHILD_NAME_TITLE</code>.
 		 *
 		 * @see feathers.core.IFeathersControl#nameList
 		 */
 		protected var titleName:String = DEFAULT_CHILD_NAME_TITLE;
 
 		/**
-		 * The value added to the <code>nameList</code> of the header's items.
+		 * The value added to the <code>nameList</code> of the header's items. This
+		 * variable is <code>protected</code> so that sub-classes can customize
+		 * the item name in their constructors instead of using the default
+		 * name defined by <code>DEFAULT_CHILD_NAME_ITEM</code>.
 		 *
 		 * @see feathers.core.IFeathersControl#nameList
 		 */
@@ -163,6 +235,15 @@ package feathers.controls
 
 		/**
 		 * The text displayed for the header's title.
+		 *
+		 * <p>In the following example, the header's title is set:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.title = "I'm a Header";</listing>
+		 *
+		 * @default ""
+		 *
+		 * @see #titleFactory
 		 */
 		public function get title():String
 		{
@@ -192,13 +273,40 @@ package feathers.controls
 		protected var _titleFactory:Function;
 
 		/**
-		 * A function used to instantiate the header's title subcomponent.
+		 * A function used to instantiate the header's title text renderer
+		 * sub-component. By default, the header will use the global text
+		 * renderer factory, <code>FeathersControl.defaultTextRendererFactory()</code>,
+		 * to create the title text renderer. The title text renderer must be an
+		 * instance of <code>ITextRenderer</code>. This factory can be used to
+		 * change properties on the title text renderer when it is first
+		 * created. For instance, if you are skinning Feathers components
+		 * without a theme, you might use this factory to style the title text
+		 * renderer.
+		 *
+		 * <p>If you are not using a theme, the title factory can be used to
+		 * provide skin the title with appropriate text styles.</p>
 		 *
 		 * <p>The factory should have the following function signature:</p>
 		 * <pre>function():ITextRenderer</pre>
 		 *
+		 * <p>In the following example, a custom title factory is passed to the
+		 * header:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.titleFactory = function():ITextRenderer
+		 * {
+		 *     var titleRenderer:TextFieldTextRenderer = new TextFieldTextRenderer();
+		 *     titleRenderer.textFormat = new TextFormat( "_sans", 12, 0xff0000 );
+		 *     return titleRenderer;
+		 * }</listing>
+		 *
+		 * @default null
+		 *
+		 * @see #title
 		 * @see feathers.core.ITextRenderer
 		 * @see feathers.core.FeathersControl#defaultTextRendererFactory
+		 * @see feathers.controls.text.BitmapFontTextRenderer
+		 * @see feathers.controls.text.TextFieldTextRenderer
 		 */
 		public function get titleFactory():Function
 		{
@@ -219,9 +327,15 @@ package feathers.controls
 		}
 
 		/**
-		 * @private
+		 * The text renderer for the header's title.
+		 *
+		 * <p>For internal use in subclasses.</p>
+		 *
+		 * @see #title
+		 * @see #titleFactory
+		 * @see #createTitle()
 		 */
-		protected var _titleRenderer:ITextRenderer;
+		protected var titleTextRenderer:ITextRenderer;
 
 		/**
 		 * @private
@@ -230,6 +344,18 @@ package feathers.controls
 
 		/**
 		 * The UI controls that appear in the left region of the header.
+		 *
+		 * <p>In the following example, a back button is displayed on the left
+		 * side of the header:</p>
+		 *
+		 * <listing version="3.0">
+		 * var backButton:Button = new Button();
+		 * backButton.label = "Back";
+		 * backButton.styleNameList.add( Button.ALTERNATE_NAME_BACK_BUTTON );
+		 * backButton.addEventListener( Event.TRIGGERED, backButton_triggeredHandler );
+		 * header.leftItems = new &lt;DisplayObject&gt;[ backButton ];</listing>
+		 *
+		 * @default null
 		 */
 		public function get leftItems():Vector.<DisplayObject>
 		{
@@ -251,13 +377,86 @@ package feathers.controls
 				{
 					if(item is IFeathersControl)
 					{
-						IFeathersControl(item).nameList.remove(this.itemName);
+						IFeathersControl(item).styleNameList.remove(this.itemName);
+						item.removeEventListener(FeathersEventType.RESIZE, item_resizeHandler);
 					}
 					item.removeFromParent();
 				}
 			}
 			this._leftItems = value;
+			if(this._leftItems)
+			{
+				for each(item in this._leftItems)
+				{
+					if(item is IFeathersControl)
+					{
+						item.addEventListener(FeathersEventType.RESIZE, item_resizeHandler);
+					}
+				}
+			}
 			this.invalidate(INVALIDATION_FLAG_LEFT_CONTENT);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _centerItems:Vector.<DisplayObject>;
+
+		/**
+		 * The UI controls that appear in the center region of the header. If
+		 * <code>centerItems</code> is not <code>null</code>, and the
+		 * <code>titleAlign</code> property is <code>Header.TITLE_ALIGN_CENTER</code>,
+		 * the title text renderer will be hidden.
+		 *
+		 * <p>In the following example, a settings button is displayed in the
+		 * center of the header:</p>
+		 *
+		 * <listing version="3.0">
+		 * var settingsButton:Button = new Button();
+		 * settingsButton.label = "Settings";
+		 * settingsButton.addEventListener( Event.TRIGGERED, settingsButton_triggeredHandler );
+		 * header.centerItems = new &lt;DisplayObject&gt;[ settingsButton ];</listing>
+		 *
+		 * @default null
+		 */
+		public function get centerItems():Vector.<DisplayObject>
+		{
+			return this._centerItems.concat();
+		}
+
+		/**
+		 * @private
+		 */
+		public function set centerItems(value:Vector.<DisplayObject>):void
+		{
+			if(this._centerItems == value)
+			{
+				return;
+			}
+			if(this._centerItems)
+			{
+				for each(var item:DisplayObject in this._centerItems)
+				{
+					if(item is IFeathersControl)
+					{
+						IFeathersControl(item).styleNameList.remove(this.itemName);
+						item.removeEventListener(FeathersEventType.RESIZE, item_resizeHandler);
+					}
+					item.removeFromParent();
+				}
+			}
+			this._centerItems = value;
+			if(this._centerItems)
+			{
+				for each(item in this._centerItems)
+				{
+					if(item is IFeathersControl)
+					{
+						item.addEventListener(FeathersEventType.RESIZE, item_resizeHandler);
+					}
+				}
+			}
+			this.invalidate(INVALIDATION_FLAG_CENTER_CONTENT);
 		}
 
 		/**
@@ -267,6 +466,17 @@ package feathers.controls
 
 		/**
 		 * The UI controls that appear in the right region of the header.
+		 *
+		 * <p>In the following example, a settings button is displayed on the
+		 * right side of the header:</p>
+		 *
+		 * <listing version="3.0">
+		 * var settingsButton:Button = new Button();
+		 * settingsButton.label = "Settings";
+		 * settingsButton.addEventListener( Event.TRIGGERED, settingsButton_triggeredHandler );
+		 * header.rightItems = new &lt;DisplayObject&gt;[ settingsButton ];</listing>
+		 *
+		 * @default null
 		 */
 		public function get rightItems():Vector.<DisplayObject>
 		{
@@ -288,12 +498,23 @@ package feathers.controls
 				{
 					if(item is IFeathersControl)
 					{
-						IFeathersControl(item).nameList.remove(this.itemName);
+						IFeathersControl(item).styleNameList.remove(this.itemName);
+						item.removeEventListener(FeathersEventType.RESIZE, item_resizeHandler);
 					}
 					item.removeFromParent();
 				}
 			}
 			this._rightItems = value;
+			if(this._rightItems)
+			{
+				for each(item in this._rightItems)
+				{
+					if(item is IFeathersControl)
+					{
+						item.addEventListener(FeathersEventType.RESIZE, item_resizeHandler);
+					}
+				}
+			}
 			this.invalidate(INVALIDATION_FLAG_RIGHT_CONTENT);
 		}
 
@@ -302,6 +523,18 @@ package feathers.controls
 		 * <code>padding</code> getter always returns the value of
 		 * <code>paddingTop</code>, but the other padding values may be
 		 * different.
+		 *
+		 * <p>In the following example, the header's padding is set to 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.padding = 20;</listing>
+		 *
+		 * @default 0
+		 *
+		 * @see #paddingTop
+		 * @see #paddingRight
+		 * @see #paddingBottom
+		 * @see #paddingLeft
 		 */
 		public function get padding():Number
 		{
@@ -327,6 +560,14 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the header's top edge and the
 		 * header's content.
+		 *
+		 * <p>In the following example, the header's top padding is set to 20
+		 * pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.paddingTop = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingTop():Number
 		{
@@ -354,6 +595,14 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the header's right edge and the
 		 * header's content.
+		 *
+		 * <p>In the following example, the header's right padding is set to 20
+		 * pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.paddingRight = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingRight():Number
 		{
@@ -381,6 +630,14 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the header's bottom edge and
 		 * the header's content.
+		 *
+		 * <p>In the following example, the header's bottom padding is set to 20
+		 * pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.paddingBottom = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingBottom():Number
 		{
@@ -408,6 +665,14 @@ package feathers.controls
 		/**
 		 * The minimum space, in pixels, between the header's left edge and the
 		 * header's content.
+		 *
+		 * <p>In the following example, the header's left padding is set to 20
+		 * pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.paddingLeft = 20;</listing>
+		 *
+		 * @default 0
 		 */
 		public function get paddingLeft():Number
 		{
@@ -433,7 +698,23 @@ package feathers.controls
 		protected var _gap:Number = 0;
 
 		/**
-		 * Space, in pixels, between items.
+		 * Space, in pixels, between items. The same value is used with the
+		 * <code>leftItems</code> and <code>rightItems</code>.
+		 *
+		 * <p>Set the <code>titleGap</code> to make the gap on the left and
+		 * right of the title use a different value.</p>
+		 *
+		 * <p>In the following example, the header's gap between items is set to
+		 * 20 pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.gap = 20;</listing>
+		 *
+		 * @default 0
+		 *
+		 * @see #titleGap
+		 * @see #leftItems
+		 * @see #rightItems
 		 */
 		public function get gap():Number
 		{
@@ -460,8 +741,18 @@ package feathers.controls
 
 		/**
 		 * Space, in pixels, between the title and the left or right groups of
-		 * items. If <code>NaN</code> (the default), the regular <code>gap</code>
+		 * items. If <code>NaN</code> (the default), the default <code>gap</code>
 		 * property is used instead.
+		 *
+		 * <p>In the following example, the header's title gap is set to 20
+		 * pixels:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.titleGap = 20;</listing>
+		 *
+		 * @default NaN
+		 *
+		 * @see #gap
 		 */
 		public function get titleGap():Number
 		{
@@ -484,11 +775,65 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected var _useExtraPaddingForOSStatusBar:Boolean = false;
+
+		/**
+		 * If enabled, the header's top padding will be increased to account for
+		 * the height of the OS status bar when the app is rendered under the OS
+		 * status bar. The header will not add extra padding to apps that aren't
+		 * rendered under the OS status bar.
+		 *
+		 * <p>iOS started rendering apps that aren't full screen under the OS
+		 * status bar in version 7.</p>
+		 *
+		 * <p>In the following example, the header's padding will account for
+		 * the iOS status bar height:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.useExtraPaddingForOSStatusBar = true;</listing>
+		 *
+		 * @default false;
+		 *
+		 * @see #paddingTop
+		 */
+		public function get useExtraPaddingForOSStatusBar():Boolean
+		{
+			return this._useExtraPaddingForOSStatusBar;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set useExtraPaddingForOSStatusBar(value:Boolean):void
+		{
+			if(this._useExtraPaddingForOSStatusBar == value)
+			{
+				return;
+			}
+			this._useExtraPaddingForOSStatusBar = value;
+			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _verticalAlign:String = VERTICAL_ALIGN_MIDDLE;
 
 		[Inspectable(type="String",enumeration="top,middle,bottom")]
 		/**
 		 * The alignment of the items vertically, on the y-axis.
+		 *
+		 * <p>In the following example, the header's vertical alignment is set
+		 * to the middle:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.verticalAlign = Header.VERTICAL_ALIGN_MIDDLE;</listing>
+		 *
+		 * @default Header.VERTICAL_ALIGN_MIDDLE
+		 *
+		 * @see #VERTICAL_ALIGN_TOP
+		 * @see #VERTICAL_ALIGN_MIDDLE
+		 * @see #VERTICAL_ALIGN_BOTTOM
 		 */
 		public function get verticalAlign():String
 		{
@@ -530,6 +875,14 @@ package feathers.controls
 
 		/**
 		 * A display object displayed behind the header's content.
+		 *
+		 * <p>In the following example, the header's background skin is set to
+		 * a <code>Quad</code>:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.backgroundSkin = new Quad( 10, 10, 0xff0000 );</listing>
+		 *
+		 * @default null
 		 */
 		public function get backgroundSkin():DisplayObject
 		{
@@ -567,6 +920,14 @@ package feathers.controls
 
 		/**
 		 * A background to display when the header is disabled.
+		 *
+		 * <p>In the following example, the header's disabled background skin is
+		 * set to a <code>Quad</code>:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.backgroundDisabledSkin = new Quad( 10, 10, 0x999999 );</listing>
+		 *
+		 * @default null
 		 */
 		public function get backgroundDisabledSkin():DisplayObject
 		{
@@ -603,17 +964,37 @@ package feathers.controls
 		protected var _titleProperties:PropertyProxy;
 
 		/**
-		 * A set of key/value pairs to be passed down to the headers's title
-		 * instance.
+		 * A set of key/value pairs to be passed down to the header's title. The
+		 * title is an <code>ITextRenderer</code> instance. The available
+		 * properties depend on which <code>ITextRenderer</code> implementation
+		 * is returned by <code>titleFactory</code>. The most common
+		 * implementations are <code>BitmapFontTextRenderer</code> and
+		 * <code>TextFieldTextRenderer</code>.
+		 *
+		 * <p>In the following example, some properties are set for the header's
+		 * title text renderer (this example assumes that the title text renderer
+		 * is a <code>BitmapFontTextRenderer</code>):</p>
+		 *
+		 * <listing version="3.0">
+		 * header.titleProperties.textFormat = new BitmapFontTextFormat( bitmapFont );
+		 * header.titleProperties.wordWrap = true;</listing>
 		 *
 		 * <p>If the subcomponent has its own subcomponents, their properties
 		 * can be set too, using attribute <code>&#64;</code> notation. For example,
-		 * to set the skin on the thumb of a <code>SimpleScrollBar</code>
-		 * which is in a <code>Scroller</code> which is in a <code>List</code>,
-		 * you can use the following syntax:</p>
-		 * <pre>list.scrollerProperties.&#64;verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
+		 * to set the skin on the thumb which is in a <code>SimpleScrollBar</code>,
+		 * which is in a <code>List</code>, you can use the following syntax:</p>
+		 * <pre>list.verticalScrollBarProperties.&#64;thumbProperties.defaultSkin = new Image(texture);</pre>
 		 *
+		 * <p>Setting properties in a <code>titleFactory</code> function instead
+		 * of using <code>titleProperties</code> will result in better
+		 * performance.</p>
+		 *
+		 * @default null
+		 *
+		 * @see #titleFactory
 		 * @see feathers.core.ITextRenderer
+		 * @see feathers.controls.text.BitmapFontTextRenderer
+		 * @see feathers.controls.text.TextFieldTextRenderer
 		 */
 		public function get titleProperties():Object
 		{
@@ -656,11 +1037,20 @@ package feathers.controls
 
 		[Inspectable(type="String",enumeration="center,preferLeft,preferRight")]
 		/**
-		 * The preferred position of the title. If leftItems and/or rightItems
-		 * is defined, the title may be forced to the center even if the
-		 * preferred position is on the left or right.
+		 * The preferred position of the title. If <code>leftItems</code> and/or
+		 * <code>rightItems</code> are not <code>null</code>, the title may be
+		 * forced to the center even if the preferred position is on the left or
+		 * right. If <code>centerItems</code> is not <code>null</code>, and the
+		 * title is centered, the title will be hidden.
 		 *
-		 * @default TITLE_ALIGN_CENTER
+		 * <p>In the following example, the header's title aligment is set to
+		 * prefer the left side:</p>
+		 *
+		 * <listing version="3.0">
+		 * header.titleAlign = Header.TITLE_ALIGN_PREFER_LEFT;</listing>
+		 *
+		 * @default Header.TITLE_ALIGN_CENTER
+		 *
 		 * @see #TITLE_ALIGN_CENTER
 		 * @see #TITLE_ALIGN_PREFER_LEFT
 		 * @see #TITLE_ALIGN_PREFER_RIGHT
@@ -681,6 +1071,17 @@ package feathers.controls
 			}
 			this._titleAlign = value;
 			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @private
+		 */
+		override public function dispose():void
+		{
+			this.leftItems = null;
+			this.rightItems = null;
+			this.centerItems = null;
+			super.dispose();
 		}
 
 		/**
@@ -707,6 +1108,7 @@ package feathers.controls
 			const stateInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_STATE);
 			const leftContentInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_LEFT_CONTENT);
 			const rightContentInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_RIGHT_CONTENT);
+			const centerContentInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_CENTER_CONTENT);
 			const textRendererInvalid:Boolean = this.isInvalid(INVALIDATION_FLAG_TEXT_RENDERER);
 
 			if(textRendererInvalid)
@@ -716,7 +1118,7 @@ package feathers.controls
 
 			if(textRendererInvalid || dataInvalid)
 			{
-				this._titleRenderer.text = this._title;
+				this.titleTextRenderer.text = this._title;
 			}
 
 			if(stateInvalid || stylesInvalid)
@@ -724,9 +1126,12 @@ package feathers.controls
 				this.refreshBackground();
 			}
 
-			if(textRendererInvalid || stylesInvalid)
+			if(textRendererInvalid || stylesInvalid || sizeInvalid)
 			{
 				this.refreshLayout();
+			}
+			if(textRendererInvalid || stylesInvalid)
+			{
 				this.refreshTitleStyles();
 			}
 
@@ -738,7 +1143,7 @@ package feathers.controls
 					{
 						if(item is IFeathersControl)
 						{
-							IFeathersControl(item).nameList.add(this.itemName);
+							IFeathersControl(item).styleNameList.add(this.itemName);
 						}
 						this.addChild(item);
 					}
@@ -753,7 +1158,22 @@ package feathers.controls
 					{
 						if(item is IFeathersControl)
 						{
-							IFeathersControl(item).nameList.add(this.itemName);
+							IFeathersControl(item).styleNameList.add(this.itemName);
+						}
+						this.addChild(item);
+					}
+				}
+			}
+
+			if(centerContentInvalid)
+			{
+				if(this._centerItems)
+				{
+					for each(item in this._centerItems)
+					{
+						if(item is IFeathersControl)
+						{
+							IFeathersControl(item).styleNameList.add(this.itemName);
 						}
 						this.addChild(item);
 					}
@@ -767,7 +1187,7 @@ package feathers.controls
 				this.layoutBackground();
 			}
 
-			if(sizeInvalid || leftContentInvalid || rightContentInvalid || stylesInvalid)
+			if(sizeInvalid || leftContentInvalid || rightContentInvalid || centerContentInvalid || stylesInvalid)
 			{
 				this.leftItemsWidth = 0;
 				this.rightItemsWidth = 0;
@@ -779,9 +1199,13 @@ package feathers.controls
 				{
 					this.layoutRightItems();
 				}
+				if(this._centerItems)
+				{
+					this.layoutCenterItems();
+				}
 			}
 
-			if(textRendererInvalid || sizeInvalid || stylesInvalid || dataInvalid || leftContentInvalid || rightContentInvalid)
+			if(textRendererInvalid || sizeInvalid || stylesInvalid || dataInvalid || leftContentInvalid || rightContentInvalid || centerContentInvalid)
 			{
 				this.layoutTitle();
 			}
@@ -789,7 +1213,20 @@ package feathers.controls
 		}
 
 		/**
-		 * @private
+		 * If the component's dimensions have not been set explicitly, it will
+		 * measure its content and determine an ideal size for itself. If the
+		 * <code>explicitWidth</code> or <code>explicitHeight</code> member
+		 * variables are set, those value will be used without additional
+		 * measurement. If one is set, but not the other, the dimension with the
+		 * explicit value will not be measured, but the other non-explicit
+		 * dimension will still need measurement.
+		 *
+		 * <p>Calls <code>setSizeInternal()</code> to set up the
+		 * <code>actualWidth</code> and <code>actualHeight</code> member
+		 * variables used for layout.</p>
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
 		 */
 		protected function autoSizeIfNeeded():Boolean
 		{
@@ -807,9 +1244,9 @@ package feathers.controls
 			for(var i:int = 0; i < leftItemCount; i++)
 			{
 				var item:DisplayObject = this._leftItems[i];
-				if(item is IFeathersControl)
+				if(item is IValidating)
 				{
-					IFeathersControl(item).validate();
+					IValidating(item).validate();
 				}
 				if(needsWidth && !isNaN(item.width))
 				{
@@ -821,16 +1258,45 @@ package feathers.controls
 				}
 				if(needsHeight && !isNaN(item.height))
 				{
-					newHeight = Math.max(newHeight, item.height);
+					var itemHeight:Number = item.height;
+					if(itemHeight > newHeight)
+					{
+						newHeight = itemHeight;
+					}
+				}
+			}
+			const centerItemCount:int = this._centerItems ? this._centerItems.length : 0;
+			for(i = 0; i < centerItemCount; i++)
+			{
+				item = this._centerItems[i];
+				if(item is IValidating)
+				{
+					IValidating(item).validate();
+				}
+				if(needsWidth && !isNaN(item.width))
+				{
+					totalItemWidth += item.width;
+					if(i > 0)
+					{
+						totalItemWidth += this._gap;
+					}
+				}
+				if(needsHeight && !isNaN(item.height))
+				{
+					itemHeight = item.height;
+					if(itemHeight > newHeight)
+					{
+						newHeight = itemHeight;
+					}
 				}
 			}
 			const rightItemCount:int = this._rightItems ? this._rightItems.length : 0;
 			for(i = 0; i < rightItemCount; i++)
 			{
 				item = this._rightItems[i];
-				if(item is IFeathersControl)
+				if(item is IValidating)
 				{
-					IFeathersControl(item).validate();
+					IValidating(item).validate();
 				}
 				if(needsWidth && !isNaN(item.width))
 				{
@@ -842,12 +1308,16 @@ package feathers.controls
 				}
 				if(needsHeight && !isNaN(item.height))
 				{
-					newHeight = Math.max(newHeight, item.height);
+					itemHeight = item.height;
+					if(itemHeight > newHeight)
+					{
+						newHeight = itemHeight;
+					}
 				}
 			}
 			newWidth += totalItemWidth;
 
-			if(this._title)
+			if(this._title && !(this._titleAlign == TITLE_ALIGN_CENTER && this._centerItems))
 			{
 				const calculatedTitleGap:Number = isNaN(this._titleGap) ? this._gap : this._titleGap;
 				newWidth += 2 * calculatedTitleGap;
@@ -856,12 +1326,16 @@ package feathers.controls
 				{
 					maxTitleWidth -= calculatedTitleGap;
 				}
+				if(centerItemCount > 0)
+				{
+					maxTitleWidth -= calculatedTitleGap;
+				}
 				if(rightItemCount > 0)
 				{
 					maxTitleWidth -= calculatedTitleGap;
 				}
-				this._titleRenderer.maxWidth = maxTitleWidth;
-				this._titleRenderer.measureText(HELPER_POINT);
+				this.titleTextRenderer.maxWidth = maxTitleWidth;
+				this.titleTextRenderer.measureText(HELPER_POINT);
 				const measuredTitleWidth:Number = HELPER_POINT.x;
 				const measuredTitleHeight:Number = HELPER_POINT.y;
 				if(needsWidth && !isNaN(measuredTitleWidth))
@@ -878,40 +1352,67 @@ package feathers.controls
 				}
 				if(needsHeight && !isNaN(measuredTitleHeight))
 				{
-					newHeight = Math.max(newHeight, measuredTitleHeight);
+					if(measuredTitleHeight > newHeight)
+					{
+						newHeight = measuredTitleHeight;
+					}
 				}
 			}
 			if(needsHeight)
 			{
 				newHeight += this._paddingTop + this._paddingBottom;
+				var extraPaddingTop:Number = this.calculateExtraOSStatusBarPadding();
+				if(extraPaddingTop > 0)
+				{
+					//account for the minimum height before adding the padding
+					if(newHeight < this._minHeight)
+					{
+						newHeight = this._minHeight;
+					}
+					newHeight += extraPaddingTop;
+				}
 			}
 			if(needsWidth && !isNaN(this.originalBackgroundWidth))
 			{
-				newWidth = Math.max(newWidth, this.originalBackgroundWidth);
+				if(this.originalBackgroundWidth > newWidth)
+				{
+					newWidth = this.originalBackgroundWidth;
+				}
 			}
 			if(needsHeight && !isNaN(this.originalBackgroundHeight))
 			{
-				newHeight = Math.max(newHeight, this.originalBackgroundHeight);
+				if(this.originalBackgroundHeight > newHeight)
+				{
+					newHeight = this.originalBackgroundHeight;
+				}
 			}
 
 			return this.setSizeInternal(newWidth, newHeight, false);
 		}
 
 		/**
-		 * @private
+		 * Creates and adds the <code>titleTextRenderer</code> sub-component and
+		 * removes the old instance, if one exists.
+		 *
+		 * <p>Meant for internal use, and subclasses may override this function
+		 * with a custom implementation.</p>
+		 *
+		 * @see #title
+		 * @see #titleTextRenderer
+		 * @see #titleFactory
 		 */
 		protected function createTitle():void
 		{
-			if(this._titleRenderer)
+			if(this.titleTextRenderer)
 			{
-				this.removeChild(DisplayObject(this._titleRenderer), true);
-				this._titleRenderer = null;
+				this.removeChild(DisplayObject(this.titleTextRenderer), true);
+				this.titleTextRenderer = null;
 			}
 
 			const factory:Function = this._titleFactory != null ? this._titleFactory : FeathersControl.defaultTextRendererFactory;
-			this._titleRenderer = ITextRenderer(factory());
-			const uiTitleRenderer:IFeathersControl = IFeathersControl(this._titleRenderer);
-			uiTitleRenderer.nameList.add(this.titleName);
+			this.titleTextRenderer = ITextRenderer(factory());
+			const uiTitleRenderer:IFeathersControl = IFeathersControl(this.titleTextRenderer);
+			uiTitleRenderer.styleNameList.add(this.titleName);
 			uiTitleRenderer.touchable = false;
 			this.addChild(DisplayObject(uiTitleRenderer));
 		}
@@ -955,7 +1456,7 @@ package feathers.controls
 		protected function refreshLayout():void
 		{
 			this._layout.gap = this._gap;
-			this._layout.paddingTop = this._paddingTop;
+			this._layout.paddingTop = this._paddingTop + this.calculateExtraOSStatusBarPadding();
 			this._layout.paddingBottom = this._paddingBottom;
 			this._layout.verticalAlign = this._verticalAlign;
 		}
@@ -965,7 +1466,7 @@ package feathers.controls
 		 */
 		protected function refreshTitleStyles():void
 		{
-			const displayTitleRenderer:DisplayObject = DisplayObject(this._titleRenderer);
+			const displayTitleRenderer:DisplayObject = DisplayObject(this.titleTextRenderer);
 			for(var propertyName:String in this._titleProperties)
 			{
 				if(displayTitleRenderer.hasOwnProperty(propertyName))
@@ -974,6 +1475,32 @@ package feathers.controls
 					displayTitleRenderer[propertyName] = propertyValue;
 				}
 			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function calculateExtraOSStatusBarPadding():Number
+		{
+			if(!this._useExtraPaddingForOSStatusBar)
+			{
+				return 0;
+			}
+			var os:String = Capabilities.os;
+			if(os.indexOf(IOS_NAME_PREFIX) != 0 || parseInt(os.substr(IOS_NAME_PREFIX.length, 1), 10) < STATUS_BAR_MIN_IOS_VERSION)
+			{
+				return 0;
+			}
+			var nativeStage:Stage = Starling.current.nativeStage;
+			if(nativeStage.displayState != StageDisplayState.NORMAL)
+			{
+				return 0;
+			}
+			if(DeviceCapabilities.dpi >= IOS_RETINA_MINIMUM_DPI)
+			{
+				return IOS_RETINA_STATUS_BAR_HEIGHT;
+			}
+			return IOS_NON_RETINA_STATUS_BAR_HEIGHT;
 		}
 
 		/**
@@ -996,9 +1523,9 @@ package feathers.controls
 		{
 			for each(var item:DisplayObject in this._leftItems)
 			{
-				if(item is IFeathersControl)
+				if(item is IValidating)
 				{
-					IFeathersControl(item).validate();
+					IValidating(item).validate();
 				}
 			}
 			HELPER_BOUNDS.x = HELPER_BOUNDS.y = 0;
@@ -1024,9 +1551,9 @@ package feathers.controls
 		{
 			for each(var item:DisplayObject in this._rightItems)
 			{
-				if(item is IFeathersControl)
+				if(item is IValidating)
 				{
-					IFeathersControl(item).validate();
+					IValidating(item).validate();
 				}
 			}
 			HELPER_BOUNDS.x = HELPER_BOUNDS.y = 0;
@@ -1047,57 +1574,106 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected function layoutCenterItems():void
+		{
+			for each(var item:DisplayObject in this._centerItems)
+			{
+				if(item is IValidating)
+				{
+					IValidating(item).validate();
+				}
+			}
+			HELPER_BOUNDS.x = HELPER_BOUNDS.y = 0;
+			HELPER_BOUNDS.scrollX = HELPER_BOUNDS.scrollY = 0;
+			HELPER_BOUNDS.explicitWidth = this.actualWidth;
+			HELPER_BOUNDS.explicitHeight = this.actualHeight;
+			this._layout.horizontalAlign = HorizontalLayout.HORIZONTAL_ALIGN_CENTER;
+			this._layout.paddingRight = this._paddingRight;
+			this._layout.paddingLeft = this._paddingLeft;
+			this._layout.layout(this._centerItems, HELPER_BOUNDS, HELPER_LAYOUT_RESULT);
+		}
+
+		/**
+		 * @private
+		 */
 		protected function layoutTitle():void
 		{
-			if(this._title.length == 0)
+			if((this._titleAlign == TITLE_ALIGN_CENTER && this._centerItems) || this._title.length == 0)
 			{
+				this.titleTextRenderer.visible = false;
 				return;
 			}
+			this.titleTextRenderer.visible = true;
 			const calculatedTitleGap:Number = isNaN(this._titleGap) ? this._gap : this._titleGap;
 			//left and right offsets already include padding
 			const leftOffset:Number = (this._leftItems && this._leftItems.length > 0) ? (this.leftItemsWidth + calculatedTitleGap) : 0;
 			const rightOffset:Number = (this._rightItems && this._rightItems.length > 0) ? (this.rightItemsWidth + calculatedTitleGap) : 0;
 			if(this._titleAlign == TITLE_ALIGN_PREFER_LEFT && (!this._leftItems || this._leftItems.length == 0))
 			{
-				this._titleRenderer.maxWidth = this.actualWidth - this._paddingLeft - rightOffset;
-				this._titleRenderer.validate();
-				this._titleRenderer.x = this._paddingLeft;
+				this.titleTextRenderer.maxWidth = this.actualWidth - this._paddingLeft - rightOffset;
+				this.titleTextRenderer.validate();
+				this.titleTextRenderer.x = this._paddingLeft;
 			}
 			else if(this._titleAlign == TITLE_ALIGN_PREFER_RIGHT && (!this._rightItems || this._rightItems.length == 0))
 			{
-				this._titleRenderer.maxWidth = this.actualWidth - this._paddingRight - leftOffset;
-				this._titleRenderer.validate();
-				this._titleRenderer.x = this.actualWidth - this._paddingRight - this._titleRenderer.width;
+				this.titleTextRenderer.maxWidth = this.actualWidth - this._paddingRight - leftOffset;
+				this.titleTextRenderer.validate();
+				this.titleTextRenderer.x = this.actualWidth - this._paddingRight - this.titleTextRenderer.width;
 			}
 			else
 			{
 				const actualWidthMinusPadding:Number = this.actualWidth - this._paddingLeft - this._paddingRight;
 				const actualWidthMinusOffsets:Number = this.actualWidth - leftOffset - rightOffset;
-				this._titleRenderer.maxWidth = actualWidthMinusOffsets;
-				this._titleRenderer.validate();
-				const idealTitlePosition:Number = this._paddingLeft + (actualWidthMinusPadding - this._titleRenderer.width) / 2;
+				this.titleTextRenderer.maxWidth = actualWidthMinusOffsets;
+				this.titleTextRenderer.validate();
+				const idealTitlePosition:Number = this._paddingLeft + (actualWidthMinusPadding - this.titleTextRenderer.width) / 2;
 				if(leftOffset > idealTitlePosition ||
-					(idealTitlePosition + this._titleRenderer.width) > (this.actualWidth - rightOffset))
+					(idealTitlePosition + this.titleTextRenderer.width) > (this.actualWidth - rightOffset))
 				{
-					this._titleRenderer.x = leftOffset + (actualWidthMinusOffsets - this._titleRenderer.width) / 2;
+					this.titleTextRenderer.x = leftOffset + (actualWidthMinusOffsets - this.titleTextRenderer.width) / 2;
 				}
 				else
 				{
-					this._titleRenderer.x = idealTitlePosition;
+					this.titleTextRenderer.x = idealTitlePosition;
 				}
 			}
+			var paddingTop:Number = this._paddingTop + this.calculateExtraOSStatusBarPadding();
 			if(this._verticalAlign == VERTICAL_ALIGN_TOP)
 			{
-				this._titleRenderer.y = this._paddingTop;
+				this.titleTextRenderer.y = paddingTop;
 			}
 			else if(this._verticalAlign == VERTICAL_ALIGN_BOTTOM)
 			{
-				this._titleRenderer.y = this.actualHeight - this._paddingBottom - this._titleRenderer.height;
+				this.titleTextRenderer.y = this.actualHeight - this._paddingBottom - this.titleTextRenderer.height;
 			}
 			else
 			{
-				this._titleRenderer.y = this._paddingTop + (this.actualHeight - this._paddingTop - this._paddingBottom - this._titleRenderer.height) / 2;
+				this.titleTextRenderer.y = paddingTop + (this.actualHeight - paddingTop - this._paddingBottom - this.titleTextRenderer.height) / 2;
 			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function header_addedToStageHandler(event:Event):void
+		{
+			Starling.current.nativeStage.addEventListener("fullScreen", nativeStage_fullScreenHandler);
+		}
+
+		/**
+		 * @private
+		 */
+		protected function header_removedFromStageHandler(event:Event):void
+		{
+			Starling.current.nativeStage.removeEventListener("fullScreen", nativeStage_fullScreenHandler);
+		}
+
+		/**
+		 * @private
+		 */
+		protected function nativeStage_fullScreenHandler(event:FullScreenEvent):void
+		{
+			this.invalidate(INVALIDATION_FLAG_SIZE);
 		}
 
 		/**
@@ -1106,6 +1682,14 @@ package feathers.controls
 		protected function titleProperties_onChange(proxy:PropertyProxy, propertyName:String):void
 		{
 			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @private
+		 */
+		protected function item_resizeHandler(event:Event):void
+		{
+			this.invalidate(INVALIDATION_FLAG_SIZE);
 		}
 	}
 }
