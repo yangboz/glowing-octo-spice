@@ -5,6 +5,7 @@ Things to A/B test with POC,also a DEMO on "sansa" (https://github.com/yangboz/g
 
 API: http://api.shephertz.com/app42-docs/multivariate-ab-testing/
 
+Live DEMO: http://www.lookbackon.com/lab/SET/Main.html
 
 Idea
 ==================
