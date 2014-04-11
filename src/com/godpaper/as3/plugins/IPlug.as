@@ -1,5 +1,7 @@
 package com.godpaper.as3.plugins
 {
+	import com.godpaper.as3.services.IConductService;
+
 //	import flash.display.Stage;
 	
 //	import mx.core.UIComponent;
@@ -27,6 +29,7 @@ package com.godpaper.as3.plugins
 		//
 		//-------------------------------------------------------------------------- 
 		function get data():IPlugData;
+		function get service():IConductService;
 		//using UIComponent to interact with  MovieClip/Sprite elements.
 //		function getEditControl(data:IPlugData):UIComponent;
 		function initialization():void;//retrieve data and more initial functions.

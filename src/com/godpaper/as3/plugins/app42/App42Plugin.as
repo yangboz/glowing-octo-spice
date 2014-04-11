@@ -9,14 +9,25 @@ package com.godpaper.as3.plugins.app42
 	import com.com.derp_octo_lana.app.consts.FlexGlobals;
 	import com.godpaper.as3.plugins.IPlug;
 	import com.godpaper.as3.plugins.IPlugData;
-	import com.shephertz.app42.paas.sdk.as3.App42API;
+	import com.godpaper.as3.plugins.playerIO.PlayerIoPlugin;
+	import com.godpaper.as3.services.IConductService;
+	import com.godpaper.as3.utils.LogUtil;
+	import com.shephertz.app42.paas.sdk.as3.App42CallBack;
+	import com.shephertz.app42.paas.sdk.as3.App42Exception;
+	import com.shephertz.app42.paas.sdk.as3.util.Util;
 	import com.shephertz.appwarp.WarpClient;
 	import com.shephertz.appwarp.types.ConnectionState;
+	
+	import mx.logging.ILogger;
+	
+	import feathers.controls.Alert;
+	import feathers.data.ListCollection;
 	
 	import org.osflash.signals.Signal;
 	
 	import playerio.Message;
-	import playerio.PlayerIOError;
+	
+	import starling.events.Event;
 	
 	
 	/**
@@ -28,7 +39,7 @@ package com.godpaper.as3.plugins.app42
 	 * Created Apr 9, 2014 2:35:55 PM
 	 * @history 12/30/13,
 	 */ 
-	public class App42Plugin implements IPlug
+	public class App42Plugin implements IPlug,App42CallBack
 	{ 
 		//--------------------------------------------------------------------------
 		//
@@ -49,12 +60,17 @@ package com.godpaper.as3.plugins.app42
 		private var _app42_wrap_client_listener:App42WrapClientListener = new App42WrapClientListener();
 		//Reference to keep
 		private var roomID:String;
+		//
+		private var _service:App42PluginService = new App42PluginService();
+		private var _userName:String;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
 		private static const APP42_API_KEY:String = "a8181333cff6c70e3b3f21976e10911a3bfabc3ac95893d71733179493a57c9f";
 		private static const APP42_SECRET_KEY:String = "cff1629d3dbc96ee83eb8a0a3efbbc6004c8034381bdd08afe380ed516280e3e";
 		private static const APP42_ROOM_ID:String = "";
+		//
+		private static const LOG:ILogger = LogUtil.getLogger(App42Plugin);
 		//--------------------------------------------------------------------------
 		//
 		// Public properties
@@ -96,6 +112,21 @@ package com.godpaper.as3.plugins.app42
 		{
 			return _signal_room_refreshed;
 		}
+		//
+		public function get data():IPlugData
+		{
+			return _model;
+		}
+		//
+		public function get service():IConductService
+		{
+			return _service;
+		}
+		//
+		public function get app42Service():App42PluginService
+		{
+			return this.service as App42PluginService;
+		}
 		//--------------------------------------------------------------------------
 		//
 		// Protected properties
@@ -108,6 +139,11 @@ package com.godpaper.as3.plugins.app42
 		// Constructor
 		//
 		//--------------------------------------------------------------------------
+		/**
+		 * App42Plugin constructor with default gameID and variable boardID. 
+		 * @param gameID the ID of game.
+		 * @param boardID the ID of game board.
+		 */		
 		public function App42Plugin(gameID:String="SET", boardID:String="")
 		{
 			_model = new App42Model();
@@ -123,10 +159,6 @@ package com.godpaper.as3.plugins.app42
 			this._signal_player_win = new Signal(int,String);//winner index,winner name.
 		}
 		
-		public function get data():IPlugData
-		{
-			return _model;
-		}
 		/**
 		 * App42API initialziation here.
 		 * @see http://api.shephertz.com/app42-docs/multivariate-ab-testing/
@@ -135,7 +167,7 @@ package com.godpaper.as3.plugins.app42
 		{
 			//User peerID initialization
 			var peerID:String = FlexGlobals.userModel.hosterPeerId;//Default get hoster peerID.
-			var username:String = FlexGlobals.userModel.hostRoleName;
+			this._userName = FlexGlobals.userModel.hostRoleName;
 			//
 //			App42API.initialize(APP42_API_KEY,APP42_SECRET_KEY);	
 			WarpClient.initialize(APP42_API_KEY,APP42_SECRET_KEY);
@@ -148,8 +180,10 @@ package com.godpaper.as3.plugins.app42
 			//Try to connect.
 			if(this._app42_wrap_client.getConnectionState()==ConnectionState.disconnected)
 			{
-				this._app42_wrap_client.connect(username);
+				this._app42_wrap_client.connect(_userName);
 			}
+			//Service initialization
+			this.service.initialization();
 		}
 		
 		public function showData():Boolean
@@ -177,14 +211,16 @@ package com.godpaper.as3.plugins.app42
 		
 		public function saveData(value:Object):Boolean
 		{
-			//TODO: implement function
+			//Save to score data
+//			this.app42Service.scoreService.	
 			return false;
 		}
 		
 		public function submitData(value:Object):Boolean
 		{
-			//TODO: implement function
-			return false;
+			//Submit data by App42 SDK
+			this.app42Service.scoreBoardService.saveUserScore(this._model.gameID,this._userName,10,this);
+			return true;
 		} 
 		//--------------------------------------------------------------------------
 		//
@@ -198,7 +234,7 @@ package com.godpaper.as3.plugins.app42
 			var owner:String = args[1];
 			var maxusers:int = 10;
 			var properties:Object = {};
-			this._app42_wrap_client.createRoom(roomName,"DirectX9Ex",maxusers,properties);
+			this._app42_wrap_client.createRoom(roomName,_userName,maxusers,properties);
 		}
 		//
 		public function refreshRoomList(... args):void
@@ -220,6 +256,23 @@ package com.godpaper.as3.plugins.app42
 			//
 			this._app42_wrap_client.joinRoom(id);
 		}
+		//App42CallBack
+		public function onSuccess(obj:Object):void
+		{
+			LOG.info("App42CallBack onSuccess:{0}",Util.toString(obj));
+			var alert:Alert = Alert.show( "Save to ScoreBoard Success!", "Info", new ListCollection(
+				[
+					{ label: "OK", triggered: okButton_triggeredHandler }
+				]) );
+		}
+		public function onException(exception:App42Exception):void
+		{
+			LOG.info("App42CallBack exception:{0}",Util.toString(exception));
+			var alert:Alert = Alert.show( "Save to ScoreBoard Failure!", "Error", new ListCollection(
+				[
+					{ label: "OK", triggered: okButton_triggeredHandler }
+				]) );
+		}
 		//--------------------------------------------------------------------------
 		//
 		// Protected methods
@@ -231,6 +284,10 @@ package com.godpaper.as3.plugins.app42
 		// Private methods
 		//
 		//--------------------------------------------------------------------------
+		private function okButton_triggeredHandler( event:Event, data:Object ):void
+		{
+			//Nothing
+		}
 	}
 
 }

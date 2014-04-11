@@ -26,6 +26,11 @@ package com.godpaper.as3.plugins.app42
 	
 	import mx.logging.ILogger;
 	
+	import feathers.controls.Alert;
+	import feathers.data.ListCollection;
+	
+	import starling.events.Event;
+	
 	
 	/**
 	 * App42WrapClientListener.as class. 
@@ -84,13 +89,16 @@ package com.godpaper.as3.plugins.app42
 				this._app42Plugin.signal_hoster_joined.dispatch(FlexGlobals.userModel.hosterPeerId);
 			}
 			else if(res == ResultCode.api_not_found || res == ResultCode.auth_error){
-				LOG.error("Verify your api key and secret key");
+				LOG.error("Verify your api key and secret key!");
+				this.alertError("Verify your api key and secret key!");
 			}
 			else if(res == ResultCode.connection_error){
-				LOG.error("Network Error. Check your internet connectivity and retry.");
+				LOG.error("Network Error. Check your internet connectivity and retry!");
+				this.alertError("Network Error. Check your internet connectivity and retry!");
 			}
 			else{
-				LOG.error("Unknown Error");
+				LOG.error("Unknown App42 Error!");
+				this.alertError("Unknown App42 Error!");
 			}
 		}
 		
@@ -317,6 +325,17 @@ package com.godpaper.as3.plugins.app42
 		// Private methods
 		//
 		//--------------------------------------------------------------------------
+		private function alertError(error:String):void
+		{
+			var alert:Alert = Alert.show( error, "Error", new ListCollection(
+				[
+					{ label: "OK", triggered: okButton_triggeredHandler }
+				]) );
+		}
+		private function okButton_triggeredHandler( event:Event, data:Object ):void
+		{
+			//Nothing
+		}
 	}
 	
 }

@@ -266,7 +266,8 @@ package com.com.derp_octo_lana.app.views.screens
 		//
 		private function set_button_triggeredHandler(event:Event):void
 		{
-			//TODO:
+			//Submit game data.
+			FlexGlobals.pluginProvider.submitData({});
 		}
 		//
 		private function shuffle_button_triggeredHandler(event:Event):void

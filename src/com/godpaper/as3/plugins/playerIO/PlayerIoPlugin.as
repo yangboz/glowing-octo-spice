@@ -31,6 +31,8 @@ package com.godpaper.as3.plugins.playerIO
 	import com.godpaper.as3.configs.IndicatorConfig;
 	import com.godpaper.as3.plugins.IPlug;
 	import com.godpaper.as3.plugins.IPlugData;
+	import com.godpaper.as3.plugins.app42.App42PluginService;
+	import com.godpaper.as3.services.IConductService;
 	import com.godpaper.as3.utils.LogUtil;
 	
 	import flash.geom.Point;
@@ -120,6 +122,16 @@ package com.godpaper.as3.plugins.playerIO
 		{
 			return _signal_room_refreshed;
 		}
+		//
+		public function get data():IPlugData
+		{
+			return _model;
+		}
+		//
+		public function get service():IConductService
+		{
+			return new PlayerIoService();
+		}
 		//--------------------------------------------------------------------------
 		//
 		//  Protected properties
@@ -146,10 +158,6 @@ package com.godpaper.as3.plugins.playerIO
 			this._signal_player_win = new Signal(int,String);//winner index,winner name.
 		}
 		
-		public function get data():IPlugData
-		{
-			return _model;
-		}
 		
 		public function initialization():void
 		{

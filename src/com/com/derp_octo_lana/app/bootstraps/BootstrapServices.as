@@ -1,12 +1,12 @@
 
 package com.com.derp_octo_lana.app.bootstraps
 {
-	//--------------------------------------------------------------------------
-	//
-	// Imports
-	//
-	//--------------------------------------------------------------------------
+	import com.com.derp_octo_lana.app.consts.FlexGlobals;
+	import com.godpaper.as3.plugins.app42.App42PluginService;
+	import com.godpaper.as3.services.IConductService;
 	
+	import org.robotlegs.core.IInjector;
+
 	/**
 	 * BootstrapServices.as class. 
 	 * @author yangboz
@@ -47,9 +47,10 @@ package com.com.derp_octo_lana.app.bootstraps
 		// Constructor
 		//
 		//--------------------------------------------------------------------------
-		public function BootstrapServices()
+		public function BootstrapServices(injector:IInjector)
 		{
-			//TODO:
+			//@see http://knowledge.robotlegs.org/kb/reference-mvcs-implementation/how-do-i-map-a-service
+//			injector.mapClass(IConductService,FlexGlobals.pluginProvider.service);
 		} 
 		//--------------------------------------------------------------------------
 		//
