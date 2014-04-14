@@ -6,21 +6,9 @@ package com.derp_octo_lana.app.views.screens
 	// Imports
 	//
 	//--------------------------------------------------------------------------
-	import com.emibap.textureAtlas.DynamicAtlas;
 	import com.godpaper.as3.utils.LogUtil;
-	
-	import flash.display.MovieClip;
-	
 	import mx.logging.ILogger;
-	
-	import assets.EmbedAssets;
-	
 	import org.robotlegs.mvcs.StarlingMediator;
-	
-	import starling.display.DisplayObject;
-	import starling.display.Image;
-	import starling.textures.Texture;
-	import starling.textures.TextureAtlas;
 	
 	/**
 	 * HelpScreenMediator.as class. 
@@ -38,7 +26,6 @@ package com.derp_octo_lana.app.views.screens
 		// Variables
 		//
 		//--------------------------------------------------------------------------
-		private var _splash:MovieClip;
 		//
 		[Inject]
 		public var view:HelpScreen;
@@ -78,14 +65,6 @@ package com.derp_octo_lana.app.views.screens
 		override public function onRegister():void
 		{
 			LOG.info("onRegister");
-			//
-			this._splash = new EmbedAssets.SET_TUTORIAL();
-			//
-			var textuerAltas:TextureAtlas =  DynamicAtlas.fromMovieClipContainer(this._splash);
-			var image:Image = new Image(textuerAltas.texture);
-			image.width = image.height = 100;
-			//
-			this.view.addChild(image);
 		}
 		
 		override public function onRemove():void
