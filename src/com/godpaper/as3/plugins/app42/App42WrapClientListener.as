@@ -6,7 +6,7 @@ package com.godpaper.as3.plugins.app42
 	// Imports
 	//
 	//--------------------------------------------------------------------------
-	import com.com.derp_octo_lana.app.consts.FlexGlobals;
+	import com.derp_octo_lana.app.consts.FlexGlobals;
 	import com.godpaper.as3.utils.LogUtil;
 	import com.shephertz.appwarp.listener.ConnectionRequestListener;
 	import com.shephertz.appwarp.listener.NotificationListener;

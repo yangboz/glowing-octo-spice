@@ -1,50 +1,36 @@
 
-package assets
+package com.derp_octo_lana.app.views.screens
 {
 	//--------------------------------------------------------------------------
 	//
 	// Imports
 	//
 	//--------------------------------------------------------------------------
+	import com.godpaper.as3.utils.LogUtil;
+	
+	import mx.logging.ILogger;
+	
+	
 	/**
-	 * EmbedAssets.as class. 
-	 * @author yangboz
+	 * HelpScreen.as class. 
+	 * @author Administrator
 	 * @langVersion 3.0
 	 * @playerVersion 11.2+
 	 * @airVersion 3.2+
-	 * Created Feb 26, 2014 11:59:25 AM
-	 * @history 03/11/13,
+	 * Created 2013-3-12 下午2:34:47
+	 * @history 05/00/12,
 	 */ 
-	public class EmbedAssets
+	public class HelpScreen extends ScreenBase
 	{ 
 		//--------------------------------------------------------------------------
 		//
 		// Variables
 		//
 		//--------------------------------------------------------------------------
-		//Images
-		//FrameTooltipShadow
-		[Embed(source="images/metalworks/pattern-background-tile.png")]
-		public static const BACK_GROUND_TEXTURE:Class;
-		//
-		[Embed(source="images/set_facts.png")]
-		public static const ICONS_IMAGE:Class;
-		//
-		[Embed(source="images/set_facts.xml",mimeType="application/octet-stream")]
-		public static const ICONS_XML:Class;
-		//Particle system(config,texture)
-		[Embed(source="particleSystem/particle-snow.pex", mimeType="application/octet-stream")]
-		public static const StarParticleConfig:Class;
-		//
-		[Embed(source="particleSystem/particle-snow.png")]
-		public static const StarParticle:Class;
-		//SetTutorial
-		[Embed(source = "SetTutorial.swf")]
-		public static const SET_TUTORIAL:Class;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
-		
+		private static const LOG:ILogger = LogUtil.getLogger(HelpScreen);
 		//--------------------------------------------------------------------------
 		//
 		// Public properties
@@ -64,7 +50,12 @@ package assets
 		// Constructor
 		//
 		//--------------------------------------------------------------------------
-		
+		public function HelpScreen()
+		{
+			super();
+			//
+			this.headerTitle = 'Help?';
+		} 
 		//--------------------------------------------------------------------------
 		//
 		// Public methods
@@ -76,7 +67,7 @@ package assets
 		// Protected methods
 		//
 		//--------------------------------------------------------------------------
-		
+		 
 		//--------------------------------------------------------------------------
 		//
 		// Private methods

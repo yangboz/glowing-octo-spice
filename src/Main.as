@@ -1,9 +1,9 @@
 
 package
 {
-	import com.com.derp_octo_lana.app.consts.FlexGlobals;
-	import com.com.derp_octo_lana.app.models.SET.SETsModel;
-	import com.com.derp_octo_lana.app.views.MainView;
+	import com.derp_octo_lana.app.consts.FlexGlobals;
+	import com.derp_octo_lana.app.models.SET.SETsModel;
+	import com.derp_octo_lana.app.views.MainView;
 	import com.godpaper.as3.plugins.app42.App42Plugin;
 	import com.godpaper.as3.plugins.playerIO.PlayerIoPlugin;
 	import com.godpaper.as3.utils.LogUtil;

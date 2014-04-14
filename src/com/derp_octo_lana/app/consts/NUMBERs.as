@@ -1,50 +1,35 @@
 
-package assets
+package com.derp_octo_lana.app.consts
 {
 	//--------------------------------------------------------------------------
 	//
 	// Imports
 	//
 	//--------------------------------------------------------------------------
+	
 	/**
-	 * EmbedAssets.as class. 
+	 * Set rules, 3) NUMBER: Each card has one, two, or three symbols.  
 	 * @author yangboz
 	 * @langVersion 3.0
 	 * @playerVersion 11.2+
 	 * @airVersion 3.2+
-	 * Created Feb 26, 2014 11:59:25 AM
-	 * @history 03/11/13,
+	 * Created Apr 12, 2013 9:56:34 PM
+	 * @history 05/00/12,
 	 */ 
-	public class EmbedAssets
+	public class NUMBERs
 	{ 
 		//--------------------------------------------------------------------------
 		//
 		// Variables
 		//
 		//--------------------------------------------------------------------------
-		//Images
-		//FrameTooltipShadow
-		[Embed(source="images/metalworks/pattern-background-tile.png")]
-		public static const BACK_GROUND_TEXTURE:Class;
-		//
-		[Embed(source="images/set_facts.png")]
-		public static const ICONS_IMAGE:Class;
-		//
-		[Embed(source="images/set_facts.xml",mimeType="application/octet-stream")]
-		public static const ICONS_XML:Class;
-		//Particle system(config,texture)
-		[Embed(source="particleSystem/particle-snow.pex", mimeType="application/octet-stream")]
-		public static const StarParticleConfig:Class;
-		//
-		[Embed(source="particleSystem/particle-snow.png")]
-		public static const StarParticle:Class;
-		//SetTutorial
-		[Embed(source = "SetTutorial.swf")]
-		public static const SET_TUTORIAL:Class;
+		
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
-		
+		public static const ONE:uint = 1;
+		public static const TWO:uint = 2;
+		public static const THREE:uint = 3;
 		//--------------------------------------------------------------------------
 		//
 		// Public properties
@@ -64,7 +49,7 @@ package assets
 		// Constructor
 		//
 		//--------------------------------------------------------------------------
-		
+		 
 		//--------------------------------------------------------------------------
 		//
 		// Public methods
