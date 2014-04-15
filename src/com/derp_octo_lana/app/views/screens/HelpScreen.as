@@ -6,6 +6,7 @@ package com.derp_octo_lana.app.views.screens
 	// Imports
 	//
 	//--------------------------------------------------------------------------
+	import com.derp_octo_lana.app.consts.FlexGlobals;
 	import com.emibap.textureAtlas.DynamicAtlas;
 	import com.godpaper.as3.utils.LogUtil;
 	
@@ -16,12 +17,9 @@ package com.derp_octo_lana.app.views.screens
 	import assets.EmbedAssets;
 	
 	import starling.display.Image;
+	import starling.events.Event;
 	import starling.textures.TextureAtlas;
-	
-	import starling.display.Image;
-	import starling.textures.TextureAtlas;
-	
-	import com.emibap.textureAtlas.DynamicAtlas;
+
 	/**
 	 * HelpScreen.as class. 
 	 * @author Administrator
@@ -84,12 +82,21 @@ package com.derp_octo_lana.app.views.screens
 			 super.initialize();
 			 //
 			 this._splash = new EmbedAssets.SET_TUTORIAL();
+			 //Does't work here.
+//			 var textuerAltas:TextureAtlas =  DynamicAtlas.fromMovieClipContainer(this._splash);
+//			 var image:Image = new Image(textuerAltas.texture);
+//			 image.width = image.height = 100;
+//			 //
+//			 this.addChild(image);
 			 //
-			 var textuerAltas:TextureAtlas =  DynamicAtlas.fromMovieClipContainer(this._splash);
-			 var image:Image = new Image(textuerAltas.texture);
-			 image.width = image.height = 100;
+			 FlexGlobals.flashStage.addChild(this._splash);
+			 this._splash.y = 95;//A litter offset.
+		 }
+		 override protected function back_button_triggeredHandler(event:Event):void
+		 {
+			 super.back_button_triggeredHandler(event);
 			 //
-			 this.addChild(image);
+			 FlexGlobals.flashStage.removeChild(this._splash);
 		 }
 		//--------------------------------------------------------------------------
 		//
