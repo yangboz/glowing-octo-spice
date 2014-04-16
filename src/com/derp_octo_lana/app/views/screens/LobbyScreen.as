@@ -344,7 +344,7 @@ package com.derp_octo_lana.app.views.screens
 			PopUpManager.removePopUp(this.enterUpIndicatory);
 			//Pop-up connnecting overlay
 			PopUpManager.addPopUp(this.connectingIndicatory);
-			PopUpManager.centerPopUp(this.connectingIndicatory);
+//			PopUpManager.centerPopUp(this.connectingIndicatory);
 			//Signal addOnce
 			if( FlexGlobals.pluginProvider )
 			{

@@ -51,6 +51,8 @@ package com.derp_octo_lana.app.models.SET
 		//
 		public var setCards:Array = [];
 		private static var currentSetCards:ListCollection;
+		//
+		public var numOfPicker:Number = 12;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
@@ -80,6 +82,9 @@ package com.derp_octo_lana.app.models.SET
 		private static const ALL_VALIDATED:Array = [1*1*1,2*2*2,3*3*3,1*2*3];//All the same or different
 		//
 		private static const LOG:ILogger = LogUtil.getLogger(SETsModel);
+		//
+		public static const SET_LEVEL_01:Number = 12;
+		public static const SET_LEVEL_02:Number = 9;
 		//--------------------------------------------------------------------------
 		//
 		// Public properties
@@ -114,7 +119,7 @@ package com.derp_octo_lana.app.models.SET
 		public function getAssembledSets(level:int):ListCollection
 		{
 			//
-			var facts:Array = MathUtil.randomPremutate(ALL_FACTS,12);
+			var facts:Array = MathUtil.randomPremutate(ALL_FACTS,numOfPicker);
 			LOG.info("SET facts:{0}",facts);
 			var len:int = facts.length;
 			currentSetCards = new ListCollection();

@@ -1,48 +1,47 @@
 
-package com.derp_octo_lana.app.bootstraps
+package com.derp_octo_lana.app.views.screens
 {
-	import com.derp_octo_lana.app.views.MainView;
-	import com.derp_octo_lana.app.views.MainViewMediator;
-	import com.derp_octo_lana.app.views.screens.GameScreen;
-	import com.derp_octo_lana.app.views.screens.GameScreenMediator;
-	import com.derp_octo_lana.app.views.screens.HelpScreen;
-	import com.derp_octo_lana.app.views.screens.HelpScreenMediator;
-	import com.derp_octo_lana.app.views.screens.LobbyScreen;
-	import com.derp_octo_lana.app.views.screens.LobbyScreenMediator;
-	import com.derp_octo_lana.app.views.screens.SettingScreen;
-	import com.derp_octo_lana.app.views.screens.SettingScreenMediator;
-	import com.derp_octo_lana.app.views.screens.SplashScreen;
-	import com.derp_octo_lana.app.views.screens.SplashScreenMediator;
-	
-	import org.robotlegs.core.IStarlingMediatorMap;
-
 	//--------------------------------------------------------------------------
 	//
 	// Imports
 	//
 	//--------------------------------------------------------------------------
+	import com.derp_octo_lana.app.models.SET.SETsModel;
+	import com.godpaper.as3.utils.LogUtil;
+	
+	import mx.logging.ILogger;
+	
+	import org.robotlegs.mvcs.StarlingMediator;
+	
+	import starling.events.Event;
+	
 	
 	/**
-	 * BootstrapViewMediators.as class. 
+	 * SettingScreenMediator.as class. 
 	 * @author yangboz
 	 * @langVersion 3.0
 	 * @playerVersion 11.2+
 	 * @airVersion 3.2+
-	 * Created Mar 8, 2013 11:17:48 PM
-	 * @history 05/00/12,
+	 * Created Apr 16, 2014 3:19:07 PM
+	 * @history 12/30/13,
 	 */ 
-	public class BootstrapViewMediators
+	public class SettingScreenMediator extends StarlingMediator
 	{ 
 		//--------------------------------------------------------------------------
 		//
 		// Variables
 		//
 		//--------------------------------------------------------------------------
-		
+		//View
+		[Inject]
+		public var view:SettingScreen;
+		//Model
+		[Inject]
+		public var model:SETsModel;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
-		
+		private static const LOG:ILogger = LogUtil.getLogger(SettingScreenMediator);
 		//--------------------------------------------------------------------------
 		//
 		// Public properties
@@ -62,21 +61,26 @@ package com.derp_octo_lana.app.bootstraps
 		// Constructor
 		//
 		//--------------------------------------------------------------------------
-		public function BootstrapViewMediators(mediatorMap:IStarlingMediatorMap)
+		public function SettingScreenMediator()
 		{
-			mediatorMap.mapView(MainView,MainViewMediator);
-			mediatorMap.mapView(SplashScreen,SplashScreenMediator);
-			mediatorMap.mapView(GameScreen,GameScreenMediator);
-			mediatorMap.mapView(LobbyScreen,LobbyScreenMediator);
-			mediatorMap.mapView(HelpScreen,HelpScreenMediator);
-			mediatorMap.mapView(SettingScreen,SettingScreenMediator);
+			super();
 		} 
 		//--------------------------------------------------------------------------
 		//
 		// Public methods
 		//
 		//--------------------------------------------------------------------------
-		
+		override public function onRegister():void
+		{
+			LOG.info("onRegister");
+			//
+			this.view._radioGroup.addEventListener(Event.CHANGE, onRadioGroupChange);
+		}
+		//
+		override public function onRemove():void
+		{
+			LOG.info("onRemove");
+		}
 		//--------------------------------------------------------------------------
 		//
 		// Protected methods
@@ -88,6 +92,12 @@ package com.derp_octo_lana.app.bootstraps
 		// Private methods
 		//
 		//--------------------------------------------------------------------------
+		//
+		private function onRadioGroupChange(event:Event):void
+		{
+			this.model.numOfPicker = this.view._radioGroup.selectedIndex? SETsModel.SET_LEVEL_02: SETsModel.SET_LEVEL_01;
+			LOG.info("SETs radio group changed:{0},number of picker:{1}", this.view._radioGroup.selectedIndex.toString(),this.model.numOfPicker);
+		}
 	}
 	
 }

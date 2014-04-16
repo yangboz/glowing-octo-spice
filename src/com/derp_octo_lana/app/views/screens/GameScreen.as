@@ -8,6 +8,7 @@ package com.derp_octo_lana.app.views.screens
 	//--------------------------------------------------------------------------
 	import com.derp_octo_lana.app.consts.FlexGlobals;
 	import com.derp_octo_lana.app.models.SET.SETsModel;
+	import com.derp_octo_lana.app.views.popups.EnterUpIndicatory;
 	import com.derp_octo_lana.app.views.screens.ScreenBase;
 	import com.godpaper.as3.utils.LogUtil;
 	
@@ -20,6 +21,7 @@ package com.derp_octo_lana.app.views.screens
 	import feathers.controls.PageIndicator;
 	import feathers.controls.renderers.DefaultListItemRenderer;
 	import feathers.controls.renderers.IListItemRenderer;
+	import feathers.core.PopUpManager;
 	import feathers.data.ListCollection;
 	import feathers.layout.TiledRowsLayout;
 	
@@ -51,6 +53,8 @@ package com.derp_octo_lana.app.views.screens
 		private var _pageIndicator:PageIndicator;
 		private var _setButton:Button;
 		private var _shuffleButton:Button;
+		//
+		private var enterUpIndicatory:EnterUpIndicatory;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
@@ -148,6 +152,15 @@ package com.derp_octo_lana.app.views.screens
 				this._pageIndicator.paddingLeft = 6;
 			this._pageIndicator.addEventListener(Event.CHANGE, pageIndicator_changeHandler);
 			this.addChild(this._pageIndicator);
+			//Enterup overlay is neccessary.
+			if(!FlexGlobals.userModel.hosterPeerId)
+			{
+				this.enterUpIndicatory = new EnterUpIndicatory();
+				PopUpManager.addPopUp(enterUpIndicatory,true,true);
+//				PopUpManager.centerPopUp(enterUpIndicatory);
+				//Signal_registed for removing pop-up
+				FlexGlobals.userModel.signal_player_registed.addOnce(onPlayerRegisted);
+			}
 		}
 		//
 		override protected function draw():void
@@ -288,6 +301,12 @@ package com.derp_octo_lana.app.views.screens
 				setFacts.push(item.SETfact);
 			}
 			return SETsModel.validateSet(setFacts);
+		}
+		//Signal handlers here.
+		//
+		private function onPlayerRegisted(peerID:String):void
+		{
+			PopUpManager.removePopUp(this.enterUpIndicatory);
 		}
 	}
 	
