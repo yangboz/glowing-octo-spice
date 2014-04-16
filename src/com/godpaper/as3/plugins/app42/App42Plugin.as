@@ -264,6 +264,8 @@ package com.godpaper.as3.plugins.app42
 				[
 					{ label: "OK", triggered: okButton_triggeredHandler }
 				]) );
+			//Signal_dispatch
+			FlexGlobals.userModel.signal_score_sumbited.dispatch(true);
 		}
 		public function onException(exception:App42Exception):void
 		{
@@ -272,6 +274,8 @@ package com.godpaper.as3.plugins.app42
 				[
 					{ label: "OK", triggered: okButton_triggeredHandler }
 				]) );
+			//Signal_dispatch
+			FlexGlobals.userModel.signal_score_sumbited.dispatch(false);
 		}
 		//--------------------------------------------------------------------------
 		//

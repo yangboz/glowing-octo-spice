@@ -9,6 +9,7 @@ package com.derp_octo_lana.app.views.screens
 	import com.derp_octo_lana.app.consts.FlexGlobals;
 	import com.derp_octo_lana.app.models.SET.SETsModel;
 	import com.derp_octo_lana.app.views.popups.EnterUpIndicatory;
+	import com.derp_octo_lana.app.views.popups.ThinkIndicatory;
 	import com.derp_octo_lana.app.views.screens.ScreenBase;
 	import com.godpaper.as3.utils.LogUtil;
 	
@@ -52,9 +53,11 @@ package com.derp_octo_lana.app.views.screens
 		private var _list:List;
 		private var _pageIndicator:PageIndicator;
 		private var _setButton:Button;
-		private var _shuffleButton:Button;
+		public var _shuffleButton:Button;
 		//
 		private var enterUpIndicatory:EnterUpIndicatory;
+		//Indicatory
+		private var connectingIndicatory:ThinkIndicatory;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
@@ -84,7 +87,10 @@ package com.derp_octo_lana.app.views.screens
 		{
 			super();
 			//
-			this.headerTitle = "SET-";
+//			this.headerTitle = String("SET-").concat(FlexGlobals.userModel.hostRoleName);
+			this.headerTitle = String("SET-");
+			//
+			this.connectingIndicatory = new ThinkIndicatory("Submiting...");
 		} 
 		//--------------------------------------------------------------------------
 		//
@@ -160,6 +166,7 @@ package com.derp_octo_lana.app.views.screens
 //				PopUpManager.centerPopUp(enterUpIndicatory);
 				//Signal_registed for removing pop-up
 				FlexGlobals.userModel.signal_player_registed.addOnce(onPlayerRegisted);
+				FlexGlobals.userModel.signal_score_sumbited.addOnce(onScoreSubmited);
 			}
 		}
 		//
@@ -177,7 +184,7 @@ package com.derp_octo_lana.app.views.screens
 //			this._shuffleButton.label = "SHUFFLE";
 			this._shuffleButton.defaultIcon = new Image(FlexGlobals.iconAtlas.getTexture("SHUFFLE"));
 			this._shuffleButton.isEnabled = true;//default value.
-			this._shuffleButton.addEventListener(Event.TRIGGERED, shuffle_button_triggeredHandler);
+//			this._shuffleButton.addEventListener(Event.TRIGGERED, shuffle_button_triggeredHandler);
 			items.push(this._shuffleButton);
 			this._setButton = new Button();
 			this._setButton.label = "SET";
@@ -281,15 +288,17 @@ package com.derp_octo_lana.app.views.screens
 		{
 			//Submit game data.
 			FlexGlobals.pluginProvider.submitData({});
+			//Show indicator
+			PopUpManager.addPopUp(this.connectingIndicatory,true,true);
 		}
 		//
-		private function shuffle_button_triggeredHandler(event:Event):void
-		{
-			//
-			var shuffled:ListCollection = SETsModel.getShuffledCurrentSetCards();
-			LOG.info("shuffled set cards:{0}",shuffled);
-			this.updateTileList(shuffled);
-		}
+//		private function shuffle_button_triggeredHandler(event:Event):void
+//		{
+//			//
+//			var shuffled:ListCollection = SETsModel.getShuffledCurrentSetCards();
+//			LOG.info("shuffled set cards:{0}",shuffled);
+//			this.updateTileList(shuffled);
+//		}
 		//
 		private function validateSet():Boolean
 		{
@@ -307,6 +316,11 @@ package com.derp_octo_lana.app.views.screens
 		private function onPlayerRegisted(peerID:String):void
 		{
 			PopUpManager.removePopUp(this.enterUpIndicatory);
+		}
+		//
+		private function onScoreSubmited(result:Boolean):void
+		{
+			PopUpManager.removePopUp(this.connectingIndicatory);
 		}
 	}
 	

@@ -143,8 +143,9 @@ package com.derp_octo_lana.app.models.SET
 			return validated;
 		}
 		//
-		public static function getShuffledCurrentSetCards():ListCollection
+		public function getShuffledCurrentSetCards():ListCollection
 		{
+			var currentSetCards:ListCollection = this.getAssembledSets(0);
 			trace("currentSetCards.length:",currentSetCards.length);
 			for (var i:int=0;i< currentSetCards.length;i++) {
 				var randomRemoveIndex:int = Math.round(Math.random() * (currentSetCards.length - 1));

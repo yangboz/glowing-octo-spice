@@ -26,8 +26,9 @@ package com.godpaper.as3.plugins.playerIO
 	//  Imports
 	//
 	//--------------------------------------------------------------------------
-	import com.com.derp_octo_lana.app.consts.FlexGlobals;
-	import com.com.derp_octo_lana.app.models.vos.ConductVO;
+	import com.derp_octo_lana.app.consts.FlexGlobals;
+	import com.derp_octo_lana.app.models.vos.ConductVO;
+	import com.derp_octo_lana.app.consts.FlexGlobals;
 	import com.godpaper.as3.configs.IndicatorConfig;
 	import com.godpaper.as3.plugins.IPlug;
 	import com.godpaper.as3.plugins.IPlugData;

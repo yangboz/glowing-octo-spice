@@ -11,7 +11,11 @@ package com.derp_octo_lana.app.views.screens
 	
 	import mx.logging.ILogger;
 	
+	import feathers.data.ListCollection;
+	
 	import org.robotlegs.mvcs.StarlingMediator;
+	
+	import starling.events.Event;
 	
 	
 	/**
@@ -33,6 +37,9 @@ package com.derp_octo_lana.app.views.screens
 		//Model
 		[Inject]
 		public var sets_model:SETsModel;
+		//
+		[Inject]
+		public var view:GameScreen;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
@@ -69,6 +76,8 @@ package com.derp_octo_lana.app.views.screens
 		{
 //			LOG.info("onRegister");
 			this.viewComponent.updateTileList( sets_model.getAssembledSets(0) );
+			//ViewEventListener
+			this.view._shuffleButton.addEventListener(Event.TRIGGERED, onShuffleButtonTriggered);
 		}
 		
 		override public function onRemove():void
@@ -86,6 +95,12 @@ package com.derp_octo_lana.app.views.screens
 		// Private methods
 		//
 		//--------------------------------------------------------------------------
+		private function onShuffleButtonTriggered(event:Event):void
+		{
+			var shuffled:ListCollection = sets_model.getShuffledCurrentSetCards();
+			LOG.info("shuffled set cards:{0}",shuffled);
+			this.view.updateTileList(shuffled);
+		}
 	}
 	
 }

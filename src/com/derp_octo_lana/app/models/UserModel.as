@@ -46,6 +46,7 @@ package com.derp_octo_lana.app.models
 		public var locale:String = "en_US";
 		//Signals
 		public var signal_player_registed:Signal;
+		public var signal_score_sumbited:Signal;
 		//Misc
 		public var state:String = "cross";//"cross","circle"
 		public var moves:Array = [];//Temp store chess piece moves
@@ -76,6 +77,7 @@ package com.derp_octo_lana.app.models
 			this.userList = new Dictionary();
 			//
 			this.signal_player_registed  = new Signal(String);
+			this.signal_score_sumbited = new Signal(Boolean);
 			//Default role name generation
 			this.hostRoleName = UIDUtil.createUID().substr(0,8);
 		}     	
