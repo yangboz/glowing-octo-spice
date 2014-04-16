@@ -5,13 +5,10 @@ package com.derp_octo_lana.app.views.screens {
 	import feathers.controls.Button;
 	import feathers.controls.Header;
 	import feathers.controls.Screen;
-	import feathers.system.DeviceCapabilities;
 	
-	import starling.core.Starling;
 	import starling.display.DisplayObject;
 	import starling.display.Image;
 	import starling.events.Event;
-	import starling.textures.Texture;
 
 	//--------------------------------------------------------------------------
 	//
@@ -97,7 +94,8 @@ package com.derp_octo_lana.app.views.screens {
 			this._backButton = new Button();
 //			this._backButton.label = "BACK";
 			this._backButton.defaultIcon = new Image(FlexGlobals.iconAtlas.getTexture("BACK"));
-			//TODO:tablet handler
+			//tablet handler
+//			this._backButton.styleNameList.add(Button.ALTERNATE_NAME_BACK_BUTTON);
 			//
 			this._backButton.addEventListener(Event.TRIGGERED, back_button_triggeredHandler);
 			var items:Vector.<DisplayObject>  = new Vector.<DisplayObject>();
