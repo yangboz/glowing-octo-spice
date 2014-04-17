@@ -8,6 +8,7 @@ package com.godpaper.as3.plugins.app42
 	//--------------------------------------------------------------------------
 	import com.godpaper.as3.services.IConductService;
 	import com.shephertz.app42.paas.sdk.as3.App42API;
+	import com.shephertz.app42.paas.sdk.as3.ServiceAPI;
 	import com.shephertz.app42.paas.sdk.as3.abtest.ABTestService;
 	import com.shephertz.app42.paas.sdk.as3.achievement.AchievementService;
 	import com.shephertz.app42.paas.sdk.as3.avatar.AvatarService;
@@ -45,6 +46,8 @@ package com.godpaper.as3.plugins.app42
 		// Variables
 		//
 		//--------------------------------------------------------------------------
+		public var serviceAPI:ServiceAPI;
+		//
 		public var gameService:GameService;
 		public var scoreService:ScoreService;
 		public var scoreBoardService:ScoreBoardService;
@@ -65,7 +68,8 @@ package com.godpaper.as3.plugins.app42
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
-		
+		private static const APP42_API_KEY:String = "bed6761e541cd0a135104c31b2f736a02b7294eef20daee891c1a5b864fb93fd";
+		private static const APP42_SECRET_KEY:String = "b3d47468ec8dd5a232c5b6dbd4efd5c2f4fc954575c809fc16f4e6252dd1cdd6";
 		//--------------------------------------------------------------------------
 		//
 		// Public properties
@@ -87,7 +91,7 @@ package com.godpaper.as3.plugins.app42
 		//--------------------------------------------------------------------------
 		public function App42PluginService()
 		{
-			//TODO: implement function
+//			this.serviceAPI = new ServiceAPI(APP42_API_KEY,APP42_SECRET_KEY);
 		}
 		
 		public function get connected():Boolean

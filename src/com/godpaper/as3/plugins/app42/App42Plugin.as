@@ -14,6 +14,7 @@ package com.godpaper.as3.plugins.app42
 	import com.godpaper.as3.utils.LogUtil;
 	import com.shephertz.app42.paas.sdk.as3.App42CallBack;
 	import com.shephertz.app42.paas.sdk.as3.App42Exception;
+	import com.shephertz.app42.paas.sdk.as3.ServiceAPI;
 	import com.shephertz.app42.paas.sdk.as3.util.Util;
 	import com.shephertz.appwarp.WarpClient;
 	import com.shephertz.appwarp.types.ConnectionState;
@@ -66,8 +67,8 @@ package com.godpaper.as3.plugins.app42
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
-		private static const APP42_API_KEY:String = "a8181333cff6c70e3b3f21976e10911a3bfabc3ac95893d71733179493a57c9f";
-		private static const APP42_SECRET_KEY:String = "cff1629d3dbc96ee83eb8a0a3efbbc6004c8034381bdd08afe380ed516280e3e";
+		private static const APP42_API_KEY:String = "bed6761e541cd0a135104c31b2f736a02b7294eef20daee891c1a5b864fb93fd";
+		private static const APP42_SECRET_KEY:String = "b3d47468ec8dd5a232c5b6dbd4efd5c2f4fc954575c809fc16f4e6252dd1cdd6";
 		private static const APP42_ROOM_ID:String = "";
 		//
 		private static const LOG:ILogger = LogUtil.getLogger(App42Plugin);
@@ -171,6 +172,7 @@ package com.godpaper.as3.plugins.app42
 			//
 //			App42API.initialize(APP42_API_KEY,APP42_SECRET_KEY);	
 			WarpClient.initialize(APP42_API_KEY,APP42_SECRET_KEY);
+			ServiceAPI
 			//
 			this._app42_wrap_client = WarpClient.getInstance();
 			this._app42_wrap_client.setConnectionRequestListener(this._app42_wrap_client_listener);
