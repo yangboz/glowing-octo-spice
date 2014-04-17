@@ -206,7 +206,7 @@ package com.derp_octo_lana.app.views.screens
 			this._button_join.addEventListener(starling.events.Event.TRIGGERED,joinButton_onRelease);
 			//
 			this._header = new Header();
-			this._header.title = "Welcome to game lobby!";//TODO:localization here.
+			this._header.title = "Welcome!";//TODO:localization here.
 			if(FlexGlobals.userModel.hosterPeerId)
 			{
 				this._header.title = FlexGlobals.userModel.getUserRoleName(FlexGlobals.userModel.hosterPeerId) +", Welcome!";
@@ -280,7 +280,7 @@ package com.derp_octo_lana.app.views.screens
 			this.anewGameIndicatory.signal_create_game.addOnce(onGameCreating);
 			//
 			PopUpManager.addPopUp(anewGameIndicatory,true,true);
-			PopUpManager.centerPopUp(anewGameIndicatory);
+//			PopUpManager.centerPopUp(anewGameIndicatory);
 			//Signal handler.
 			if( FlexGlobals.pluginProvider )
 			{
@@ -334,7 +334,7 @@ package com.derp_octo_lana.app.views.screens
 				//Joinning indicator pop up 
 				this.joinIndicator = new ThinkIndicatory("Joining...");
 				PopUpManager.addPopUp(joinIndicator);
-				PopUpManager.centerPopUp(joinIndicator);
+//				PopUpManager.centerPopUp(joinIndicator);
 			}
 		}
 		//Signal handlers here.

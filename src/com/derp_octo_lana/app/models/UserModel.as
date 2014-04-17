@@ -55,6 +55,8 @@ package com.derp_octo_lana.app.models
 		//----------------------------------
 //		public var ROLE_NAME_LIST:Vector.<String> = new Vector.<String>("Player1" ,"Player2" ,"Spectator");
 		public var ROLE_NAME_LIST:Array = ["Player1" ,"Player2" ,"Spectator"];
+		//Indicator whether single player or multiplayer game model.
+		public var isSinglePlayer:Boolean = false;
 		//--------------------------------------------------------------------------
 		//
 		//  Public properties

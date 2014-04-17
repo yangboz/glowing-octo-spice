@@ -16,8 +16,6 @@ package com.derp_octo_lana.app.views.screens
 	import mx.logging.ILogger;
 	
 	import feathers.controls.Button;
-	import feathers.controls.Callout;
-	import feathers.controls.Label;
 	import feathers.controls.List;
 	import feathers.controls.PageIndicator;
 	import feathers.controls.renderers.DefaultListItemRenderer;
@@ -57,7 +55,8 @@ package com.derp_octo_lana.app.views.screens
 		//
 		private var enterUpIndicatory:EnterUpIndicatory;
 		//Indicatory
-		private var connectingIndicatory:ThinkIndicatory;
+		private var submitingIndicatory:ThinkIndicatory;
+		private var waitingIndicatiory:ThinkIndicatory;
 		//----------------------------------
 		// CONSTANTS
 		//----------------------------------
@@ -90,7 +89,6 @@ package com.derp_octo_lana.app.views.screens
 //			this.headerTitle = String("SET-").concat(FlexGlobals.userModel.hostRoleName);
 			this.headerTitle = String("SET-");
 			//
-			this.connectingIndicatory = new ThinkIndicatory("Submiting...");
 		} 
 		//--------------------------------------------------------------------------
 		//
@@ -167,6 +165,12 @@ package com.derp_octo_lana.app.views.screens
 				//Signal_registed for removing pop-up
 				FlexGlobals.userModel.signal_player_registed.addOnce(onPlayerRegisted);
 				FlexGlobals.userModel.signal_score_sumbited.addOnce(onScoreSubmited);
+			}
+			//Waiting player if neccessary.
+			if(!FlexGlobals.userModel.isSinglePlayer)
+			{
+				this.waitingIndicatiory = new ThinkIndicatory("Waiting...");
+				PopUpManager.addPopUp(this.waitingIndicatiory,true,true);
 			}
 		}
 		//
@@ -289,7 +293,8 @@ package com.derp_octo_lana.app.views.screens
 			//Submit game data.
 			FlexGlobals.pluginProvider.submitData({});
 			//Show indicator
-			PopUpManager.addPopUp(this.connectingIndicatory,true,true);
+			this.submitingIndicatory = new ThinkIndicatory("Sumbmiting...");
+			PopUpManager.addPopUp(this.submitingIndicatory,true,true);
 		}
 		//
 //		private function shuffle_button_triggeredHandler(event:Event):void
@@ -320,7 +325,7 @@ package com.derp_octo_lana.app.views.screens
 		//
 		private function onScoreSubmited(result:Boolean):void
 		{
-			PopUpManager.removePopUp(this.connectingIndicatory);
+			PopUpManager.removePopUp(this.submitingIndicatory);
 		}
 	}
 	

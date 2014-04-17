@@ -134,11 +134,13 @@ package com.derp_octo_lana.app.views.screens
 		//
 		private function s_play_button_triggeredHandler(event:Event):void
 		{
+			FlexGlobals.userModel.isSinglePlayer = true;
 			FlexGlobals.screenNavigator.showScreen(FlexGlobals.SCREEN_GAME);
 		}
 		//
 		private function m_play_button_triggeredHandler(event:Event):void
 		{
+			FlexGlobals.userModel.isSinglePlayer = false;
 			FlexGlobals.screenNavigator.showScreen(FlexGlobals.SCREEN_LOOBY);
 		}
 		//
