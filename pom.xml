@@ -21,7 +21,7 @@
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
-
+		<testSourceDirectory>src/flexUnitTests</testSourceDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.sonatype.flexmojos</groupId>
@@ -47,7 +47,6 @@
 				</dependencies>
 			</plugin>
 		</plugins>
-
 	</build>
 
 	<dependencies>
@@ -57,7 +56,7 @@
 			<version>${flex.framework.version}</version>
 			<type>pom</type>
 		</dependency>
-		
+<!--		
 		<dependency>
 		  <groupId>com.adobe.flexunit</groupId>
 		  <artifactId>flexunit</artifactId>
@@ -65,7 +64,7 @@
 		  <type>swc</type>
 		  <scope>test</scope>
 		</dependency>
-<!--
+
 		<dependency>
 			<groupId>com.godpaper.as3</groupId>
 			<artifactId>as3Logger</artifactId>

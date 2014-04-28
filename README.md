@@ -22,7 +22,17 @@ https://github.com/wooga/as3-abtest
 Maven
 ==================
 
-###Reference: https://github.com/justinjmoses/flexmojos-introduction
+###Reference: 
+
+https://github.com/justinjmoses/flexmojos-introduction
+
+https://docs.sonatype.org/display/FLEXMOJOS/FAQ
+
+http://www.adobe.com/cn/devnet/flex/articles/flex-maven-flexmojos-pt3.html
+
+http://books.sonatype.com/mvnref-book/reference/flex-dev-sect-custom-lifecycle.html
+
+http://www.linuxde.net/2011/07/358.html
 
 ###Dependencies:
 

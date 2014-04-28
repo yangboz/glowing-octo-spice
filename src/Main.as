@@ -2,10 +2,8 @@
 package
 {
 	import com.derp_octo_lana.app.consts.FlexGlobals;
-	import com.derp_octo_lana.app.models.SET.SETsModel;
 	import com.derp_octo_lana.app.views.MainView;
 	import com.godpaper.as3.plugins.app42.App42Plugin;
-	import com.godpaper.as3.plugins.playerIO.PlayerIoPlugin;
 	import com.godpaper.as3.utils.LogUtil;
 	import com.godpaper.as3.utils.SingletonFactory;
 	
@@ -18,8 +16,6 @@ package
 	import org.robotlegs.mvcs.StarlingContext;
 	
 	import starling.core.Starling;
-	import starling.textures.Texture;
-	import starling.textures.TextureAtlas;
 	
 	
 	/**
