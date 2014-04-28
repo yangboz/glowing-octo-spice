@@ -26,4 +26,4 @@ Maven
 
 ###Dependencies:
 
-install:install-file -Dfile=../libs/App42_ActionScript_SDK_2.2.swc -DgroupId=com.shephertz.app42.paas.sdk.as3 -DartifactId=as3-app42-sdk -Dversion=2.2 -Dpackaging=swc -Dfile=../libs/AppWarpLib.swc -DgroupId=com.shephertz.appwarp -DartifactId=as3-app42-appwarp -Dversion=1.0 -Dpackaging=swc -Dfile=../libs/as3Logger.swc  -DgroupId=com.godpaper.as3 -DartifactId=as3-logger -Dversion=1.0 -Dfile=../libs/robotlegs-framework-v1.5.2.swc -DgroupId=org.robotlegs -DartifactId=robotlegs-framework -Dversion=1.5.2
+install:install-file -Dfile=../libs/App42_ActionScript_SDK_2.2.swc -DgroupId=com.shephertz.app42.paas.sdk.as3 -DartifactId=as3-app42-sdk -Dversion=2.2 -Dpackaging=swc -Dfile=../libs/AppWarpLib.swc -DgroupId=com.shephertz.appwarp -DartifactId=as3-app42-appwarp -Dversion=1.0 -Dpackaging=swc -Dfile=../libs/as3Logger.swc  -DgroupId=com.godpaper.as3 -DartifactId=as3-logger -Dversion=1.0 -Dfile=../libs/robotlegs-framework-v1.5.2.swc -DgroupId=org.robotlegs -DartifactId=robotlegs-framework -Dversion=1.5.2 -Dfile=../libs/flexunit-4.1.0-8-flex_4.1.0.16076.swc -DgroupId=com.adobe.flexunit -DartifactId=flexunit -Dversion=4.1.0.16076
